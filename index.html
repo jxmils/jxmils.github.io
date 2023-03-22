@@ -219,19 +219,16 @@
       const images = document.querySelectorAll('.image-slider img');
       let imageIndex = 0;
     
-      function updateImages() {
+      function updateAnimationDelay() {
         images.forEach((image, index) => {
-          if (index === imageIndex) {
-            image.style.opacity = 1;
-          } else {
-            image.style.opacity = 0;
-          }
+          const delay = index === imageIndex ? 0 : (index - imageIndex) * 5;
+          image.style.animationDelay = `${delay}s`;
         });
-    
         imageIndex = (imageIndex + 1) % images.length;
       }
     
-      setInterval(updateImages, 5000);
+      updateAnimationDelay();
+      setInterval(updateAnimationDelay, images.length * 5 * 1000);
     </script>
   </body>
 </html>
