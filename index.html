@@ -131,16 +131,6 @@
         line-height: 1.6;
         text-align: left; /* Align project card text to the left */
       }
-      
-      .image-slider {
-        position: relative;
-        overflow: hidden;
-        width: 300px;
-        height: 300px;
-        margin: 0 auto;
-        padding: 1rem;
-      }
-
       .image-container {
         position: relative;
         width: 100%;
@@ -149,43 +139,14 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         overflow: hidden;
       }
-
-      .image-slider img {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        opacity: 0;
-        max-width: none;
-        max-height: 100%;
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        transition: opacity 1s;
-      }
-
-
-
-      @keyframes imageFade {
-        0% { opacity: 0; }
-        5% { opacity: 1; }
-        20% { opacity: 1; }
-        25% { opacity: 0; }
-        100% { opacity: 0; }
-      }
-
-
     </style>
   </head>
   <body>
     <header>
       <h1>Jason Paul Miller - Portfolio</h1>
     </header>
-      <div class="image-slider">
-        <div class="image-container">
-          <img src="pictures_of_me/jason.jpeg" alt="Jason Paul Miller" class="profile-img">
-          <img src="pictures_of_me/mac.JPG" alt="Jason Paul Miller" class="profile-img">
-          <img src="pictures_of_me/Headshot.jpeg" alt="Jason Paul Miller" class="profile-img">
-          <!-- Add more images here -->
-        </div>
+      <div class="image-container">
+        <img src="pictures_of_me/jason.jpeg" alt="Jason Paul Miller" class="profile-img">
       </div>
       <div class="about">
         <h2>About Me</h2>
@@ -226,20 +187,5 @@
       <a href="https://github.com/jxmils" target="_blank"><i class="fab fa-github"></i></a>
       <a href="https://linkedin.com/in/jxmils" target="_blank"><i class="fab fa-linkedin"></i></a>
     </footer>
-    <script>
-      const images = document.querySelectorAll('.image-slider img');
-      let imageIndex = 0;
-    
-      function updateAnimationDelay() {
-        images.forEach((image, index) => {
-          const delay = index === imageIndex ? 0 : (index - imageIndex) * 5;
-          image.style.animationDelay = `${delay}s`;
-        });
-        imageIndex = (imageIndex + 1) % images.length;
-      }
-    
-      updateAnimationDelay();
-      setInterval(updateAnimationDelay, images.length * 5 * 1000);
-    </script>
   </body>
 </html>
