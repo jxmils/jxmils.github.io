@@ -144,15 +144,16 @@
 
       .image-slider img {
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 50%;
+        left: 50%;
         opacity: 0;
-        width: 100%;
-        height: auto;
+        max-width: none;
+        max-height: 100%;
         border-radius: 50%;
-        animation: imageFade 15s infinite;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        transform: translate(-50%, -50%);
+        transition: opacity 1s;
       }
+
 
       @keyframes imageFade {
         0% { opacity: 0; }
