@@ -75,6 +75,39 @@
       footer a:hover {
         color: #ddd;
       }
+      .projects {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 2rem;
+      }
+
+      .project-card {
+        background: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        width: 300px;
+      }
+
+      .project-card img {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 1rem;
+      }
+
+      .project-card h3 {
+        font-size: 20px;
+        margin-bottom: 0.5rem;
+      }
+
+      .project-card p {
+        font-size: 16px;
+        line-height: 1.6;
+      }
     </style>
   </head>
   <body>
@@ -82,6 +115,14 @@
       <h1>Jason Paul Miller - Portfolio</h1>
     </header>
     <section class="container">
+      <section class="projects">
+        <h2>My Projects</h2>
+        <div class="project-card">
+          <img src="project1-image.jpg" alt="Project 1">
+          <h3>Project 1</h3>
+          <p>Short description of Project 1.</p>
+        </div>
+      </section>
       <img src="jason.jpeg" alt="Jason Paul Miller" class="profile-img">
       <div class="about">
         <h2>About Me</h2>
