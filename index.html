@@ -132,13 +132,49 @@
         text-align: left; /* Align project card text to the left */
       }
 
+      .image-slider {
+        position: relative;
+        overflow: hidden;
+        width: 300px;
+        height: 300px;
+        margin: 0 auto;
+        padding: 1rem;
+        border-radius: 50%;
+      }
+
+      .image-slider img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        width: 100%;
+        height: auto;
+        border-radius: 50%;
+        animation: imageFade 15s infinite;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      @keyframes imageFade {
+        0% { opacity: 0; }
+        5% { opacity: 1; }
+        20% { opacity: 1; }
+        25% { opacity: 0; }
+        100% { opacity: 0; }
+      }
+
+
     </style>
   </head>
   <body>
     <header>
       <h1>Jason Paul Miller - Portfolio</h1>
     </header>
-      <img src="jason.jpeg" alt="Jason Paul Miller" class="profile-img">
+      <div class="image-slider">
+        <img src="pictures_of_me/jason.jpeg" alt="Jason Paul Miller" class="profile-img">
+        <img src="pictures_of_me/mac.JPG" alt="Jason Paul Miller" class="profile-img">
+        <img src="pictures_of_me/headshot.JPG" alt="Jason Paul Miller" class="profile-img">
+        <!-- Add more images here -->
+      </div>
       <div class="about">
         <h2>About Me</h2>
         <p>
@@ -148,7 +184,7 @@
         </p>
       </div> 
     </section>
-    <section class="container">
+    <section class="conta iner">
       <section class="projects">
         <div class="projects-header">
           <h2>My Projects</h2>
@@ -178,5 +214,20 @@
       <a href="https://github.com/jxmils" target="_blank"><i class="fab fa-github"></i></a>
       <a href="https://linkedin.com/in/jxmils" target="_blank"><i class="fab fa-linkedin"></i></a>
     </footer>
+    <script>
+      const images = document.querySelectorAll('.image-slider img');
+      let imageIndex = 0;
+    
+      function updateAnimationDelay() {
+        images.forEach((image, index) => {
+          const delay = index === imageIndex ? 0 : (index - imageIndex) * 5;
+          image.style.animationDelay = `${delay}s`;
+        });
+        imageIndex = (imageIndex + 1) % images.length;
+      }
+    
+      updateAnimationDelay();
+      setInterval(updateAnimationDelay, images.length * 5 * 1000);
+    </script>
   </body>
 </html>
