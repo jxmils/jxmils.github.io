@@ -65,5 +65,25 @@
       <a href="https://linkedin.com/in/jxmils" target="_blank"><i class="fab fa-linkedin"></i></a>
     </footer>
 
+    <script>
+      const projectsContainer = document.querySelector('.projects');
+      let mouseX = 0;
+    
+      projectsContainer.addEventListener('mousemove', (e) => {
+        mouseX = e.pageX - projectsContainer.offsetLeft;
+      });
+    
+      function slideProjects() {
+        const containerWidth = projectsContainer.clientWidth;
+        const contentWidth = projectsContainer.scrollWidth;
+        const scrollPos = (mouseX / containerWidth) * (contentWidth - containerWidth);
+    
+        projectsContainer.scrollLeft = scrollPos;
+        requestAnimationFrame(slideProjects);
+      }
+    
+      slideProjects();
+    </script>
+    
   </body>
 </html>
