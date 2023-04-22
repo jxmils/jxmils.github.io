@@ -1,14 +1,17 @@
-const projectsContainer = document.querySelector('.projects');
-const slider = document.querySelector('.slider');
+const projectLinks = document.querySelectorAll('.project-card-link');
 
-projectsContainer.addEventListener('mousemove', (e) => {
-    const containerWidth = projectsContainer.clientWidth;
-    const sliderWidth = slider.clientWidth;
-    const maxScroll = sliderWidth - containerWidth;
+projectLinks.forEach(link => {
+  link.addEventListener('mouseenter', () => {
+    projectLinks.forEach(otherLink => {
+      if (otherLink !== link) {
+        otherLink.style.opacity = '0.5';
+      }
+    });
+  });
 
-    const mouseX = e.clientX;
-    const scrollSpeed = mouseX / containerWidth;
-
-    const scrollPos = maxScroll * scrollSpeed;
-    slider.style.transform = `translateX(-${scrollPos}px)`;
+  link.addEventListener('mouseleave', () => {
+    projectLinks.forEach(otherLink => {
+      otherLink.style.opacity = '1';
+    });
+  });
 });
