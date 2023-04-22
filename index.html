@@ -26,6 +26,8 @@
       <section class="projects">
         <div class="projects-header">
           <h2>My Projects</h2>
+        </div>
+        <div class="slider">
           <a href="https://github.com/jxmils/Machine-Learning/tree/main/SMS-Spam-Detection" class="project-card-link">
             <div class="project-card">
               <img src="project_images/sms_spam_detection.png" alt="Project 1">
@@ -58,6 +60,7 @@
         </div>
       </section>
     </section>
+    
 
     <footer>
       <a href="mailto:jasonversamiller@gmail.com"><i class="fas fa-envelope"></i></a>
@@ -65,25 +68,7 @@
       <a href="https://linkedin.com/in/jxmils" target="_blank"><i class="fab fa-linkedin"></i></a>
     </footer>
 
-    <script>
-      const projectsContainer = document.querySelector('.projects');
-      let mouseX = 0;
-    
-      projectsContainer.addEventListener('mousemove', (e) => {
-        mouseX = e.pageX - projectsContainer.offsetLeft;
-      });
-    
-      function slideProjects() {
-        const containerWidth = projectsContainer.clientWidth;
-        const contentWidth = projectsContainer.scrollWidth;
-        const scrollPos = (mouseX / containerWidth) * (contentWidth - containerWidth);
-    
-        projectsContainer.scrollLeft = scrollPos;
-        requestAnimationFrame(slideProjects);
-      }
-    
-      slideProjects();
-    </script>
+    <script src="script.js"></script>
     
   </body>
 </html>
