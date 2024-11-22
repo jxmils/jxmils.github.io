@@ -1,13 +1,172 @@
+/* General Styles */
 body {
+  font-family: 'Roboto', sans-serif;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background-color: #f9f9f9;
+  color: #333;
+  line-height: 1.6;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+a {
+  text-decoration: none;
+  color: #0078d7;
+}
+
+a:hover {
+  color: #005fa3;
+}
+
+/* Header Styles */
+.header {
+  background-color: #222;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.header p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #ddd;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.tab {
+  margin: 0 10px;
+  padding: 10px 20px;
+  background: #ddd;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.tab.active {
+  background: #0078d7;
+  color: #fff;
+}
+
+.tab:hover {
+  background: #005fa3;
+  color: #fff;
+}
+
+/* Sections */
+.section {
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.section-content {
+  margin-top: 10px;
+}
+
+/* Cards */
+.card {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #f1f1f1;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.card p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #555;
+}
+
+.card strong {
+  color: #0078d7;
+}
+
+/* Skill Bars */
+.skill-bar {
+  margin: 10px 0;
+}
+
+.skill-bar p {
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.skill-bar .bar {
+  background: #ddd;
+  border-radius: 5px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.skill-bar .progress {
+  background: #0078d7;
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px;
+  background: #222;
+  color: #aaa;
+}
+
+.footer p {
+  font-size: 0.9rem;
+}
+
+.footer a {
+  color: #0078d7;
+}
+
+.footer a:hover {
+  color: #005fa3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .tab {
+    font-size: 0.9rem;
+    padding: 8px 15px;
+  }
+
+  .section {
+    padding: 15px;
+  }
+
+  .card {
+    padding: 15px;
+  }
 }
