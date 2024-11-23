@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../WorkExperienceSection.css';
 
 const WorkExperienceSection = () => {
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [scrollDirection, setScrollDirection] = useState(null);
+  const timelineRef = useRef(null);
+  const animationFrameRef = useRef(null); // To manage requestAnimationFrame
 
   const experiences = [
     {
@@ -31,25 +33,70 @@ const WorkExperienceSection = () => {
       description: 'Demonstrated expertise in Spring Boot and RESTful web services by implementing robust applications with comprehensive test coverage. Gained proficiency in GraphQL and Mockito for API development.',
     },
   ];
+  useEffect(() => {
+    let lastTime = performance.now();
+  
+    const smoothScroll = (currentTime) => {
+      if (!timelineRef.current || !scrollDirection) return;
+  
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+  
+      const speed = 60; // Pixels per millisecond 
+      const scrollAmount = deltaTime * speed;
+  
+      if (scrollDirection === 'left') {
+        timelineRef.current.scrollLeft -= scrollAmount;
+      } else if (scrollDirection === 'right') {
+        timelineRef.current.scrollLeft += scrollAmount;
+      }
+  
+      animationFrameRef.current = requestAnimationFrame(smoothScroll);
+    };
+  
+    if (scrollDirection) {
+      animationFrameRef.current = requestAnimationFrame(smoothScroll);
+    }
+  
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [scrollDirection]);
+
+  const handleMouseMove = (e) => {
+    if (!timelineRef.current) return;
+
+    const rect = timelineRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const width = rect.width;
+
+    const centerThreshold = width * 0.25; // 25% dead zone in the center
+    const center = width / 2;
+
+    if (mouseX < center - centerThreshold) {
+      setScrollDirection('left');
+    } else if (mouseX > center + centerThreshold) {
+      setScrollDirection('right');
+    } else {
+      setScrollDirection(null); // Stop scrolling
+    }
+  };
 
   return (
-    <section className="work-experience-section">
-      <h2 className="section-title">Work Experience</h2>
-      <div className="timeline">
+    <section
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setScrollDirection(null)} // Stop scrolling when the mouse leaves
+    >
+      <div className="horizontal-timeline" ref={timelineRef}>
         {experiences.map((experience, index) => (
-          <div
-            key={index}
-            className={`timeline-item ${activeIndex === index ? 'active' : ''}`}
-            onMouseEnter={() => setActiveIndex(index)}
-            onMouseLeave={() => setActiveIndex(null)}
-          >
+          <div key={index} className="timeline-item">
             <div className="timeline-marker"></div>
             <div className="timeline-content">
               <h3 className="experience-title">{experience.title}</h3>
               <p className="experience-subtitle">{experience.subtitle}</p>
-              {activeIndex === index && (
-                <p className="experience-description">{experience.description}</p>
-              )}
+              <p className="experience-description">{experience.description}</p>
             </div>
           </div>
         ))}

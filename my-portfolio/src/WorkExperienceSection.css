@@ -1,100 +1,82 @@
 /* Timeline Section */
 .work-experience-section {
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
+    max-width: 100%;
+    height: 400px; /* Increased height for better spacing */
+    padding: 40px; /* Increased padding for a larger container */
+    background: #f9f9f9;
+    overflow: hidden;
+    position: relative;
     border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
   
   /* Section Title */
   .section-title {
+    text-align: center;
     font-size: 24px;
     font-weight: bold;
-    color: #007aff; /* Apple-style blue */
+    color: #007aff;
     margin-bottom: 20px;
-    text-align: center;
   }
   
-  /* Timeline */
-  .timeline {
+  /* Horizontal Timeline */
+  .horizontal-timeline {
+    display: flex;
+    flex-direction: row-reverse; /* Most recent experience on the right */
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 20px 0;
     position: relative;
-    padding-left: 30px;
-    border-left: 2px solid #ddd;
   }
   
   /* Timeline Item */
   .timeline-item {
+    flex: 0 0 350px; /* Larger item width */
     position: relative;
-    margin-bottom: 20px;
-    padding-left: 20px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  /* Hover Effect */
+  .timeline-item:hover {
+    transform: scale(1.05);
+    background-color: #007aff;
+    color: #fff;
   }
   
   /* Marker */
   .timeline-marker {
-    position: absolute;
-    left: -10px;
-    top: 5px;
-    width: 20px;
-    height: 20px;
-    background-color: #007aff;
-    border-radius: 50%;
-    border: 2px solid #fff;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  /* Timeline Content */
-  .timeline-content {
-    background: #fff;
-    padding: 10px 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  /* Timeline Content Active State */
-  .timeline-item.active .timeline-marker {
-    transform: scale(1.2);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .timeline-item.active .timeline-content {
+    width: 12px;
+    height: 12px;
     background: #007aff;
-    color: #fff;
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    margin-bottom: 10px;
   }
   
-  /* Experience Title */
+  /* Content Styles */
   .experience-title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 5px;
-    transition: color 0.3s ease;
   }
   
-  .timeline-item.active .experience-title {
-    color: #fff;
-  }
-  
-  /* Experience Subtitle */
   .experience-subtitle {
     font-size: 14px;
     color: #666;
-    margin-bottom: 5px;
-    transition: color 0.3s ease;
+    margin-bottom: 10px;
   }
   
-  .timeline-item.active .experience-subtitle {
-    color: #d9ecff;
-  }
-  
-  /* Experience Description */
   .experience-description {
     font-size: 14px;
     color: #333;
-    margin-top: 10px;
-    transition: color 0.3s ease;
+  }
+  
+  .timeline-item:hover .experience-subtitle,
+  .timeline-item:hover .experience-description {
+    color: #d9ecff;
   }
   
