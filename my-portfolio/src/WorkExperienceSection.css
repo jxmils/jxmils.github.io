@@ -1,0 +1,100 @@
+/* Timeline Section */
+.work-experience-section {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+  }
+  
+  /* Section Title */
+  .section-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007aff; /* Apple-style blue */
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  /* Timeline */
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+    border-left: 2px solid #ddd;
+  }
+  
+  /* Timeline Item */
+  .timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding-left: 20px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  
+  /* Marker */
+  .timeline-marker {
+    position: absolute;
+    left: -10px;
+    top: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: #007aff;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Timeline Content */
+  .timeline-content {
+    background: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Timeline Content Active State */
+  .timeline-item.active .timeline-marker {
+    transform: scale(1.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .timeline-item.active .timeline-content {
+    background: #007aff;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Experience Title */
+  .experience-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+  }
+  
+  .timeline-item.active .experience-title {
+    color: #fff;
+  }
+  
+  /* Experience Subtitle */
+  .experience-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+    transition: color 0.3s ease;
+  }
+  
+  .timeline-item.active .experience-subtitle {
+    color: #d9ecff;
+  }
+  
+  /* Experience Description */
+  .experience-description {
+    font-size: 14px;
+    color: #333;
+    margin-top: 10px;
+    transition: color 0.3s ease;
+  }
+  

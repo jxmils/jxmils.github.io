@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import '../Tabs.css';
 
 const Tabs = ({ tabs, onSelect }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -9,16 +10,18 @@ const Tabs = ({ tabs, onSelect }) => {
   };
 
   return (
-    <div className="tabs">
-      {tabs.map((tab, index) => (
-        <button
-          key={index}
-          className={activeTab === index ? 'tab active' : 'tab'}
-          onClick={() => handleClick(index)}
-        >
-          {tab}
-        </button>
-      ))}
+    <div className="tabs-container">
+      <div className="tabs">
+        {tabs.map((tab, index) => (
+          <button
+            key={index}
+            className={`tab ${activeTab === index ? 'active' : ''}`}
+            onClick={() => handleClick(index)}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

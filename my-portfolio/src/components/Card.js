@@ -2,9 +2,9 @@ import React from 'react';
 
 const Card = ({ title, subtitle, description }) => (
   <div className="card">
-    <h3>{title}</h3>
-    <p><strong>{subtitle}</strong></p>
-    <p>{description}</p>
+    <h3 className="card-title">{title}</h3>
+    <p className="card-subtitle">{subtitle}</p>
+    <p className="card-description">{description}</p>
   </div>
 );
 

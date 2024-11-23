@@ -1,0 +1,46 @@
+.header {
+    background-color: #f9f9f9; /* Neutral background */
+    border-bottom: 1px solid #ddd; /* Subtle separator */
+    padding: 20px 0;
+  }
+  
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 0 20px;
+  }
+  
+  .header-title {
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .header-subtitle {
+    font-size: 18px;
+    font-weight: 400;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .header-contact {
+    font-size: 16px;
+    color: #555;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  
+  .header-contact a {
+    color: #007aff; /* Apple-style blue accent */
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .header-contact a:hover {
+    color: #005ecf; /* Darker blue on hover */
+  }
+  

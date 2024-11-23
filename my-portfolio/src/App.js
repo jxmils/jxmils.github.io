@@ -3,8 +3,9 @@ import Header from './components/Header';
 import Tabs from './components/Tabs';
 import Section from './components/Section';
 import Card from './components/Card';
-import SkillBar from './components/SkillBar';
+import SkillsSection from './components/SkillsSection';
 import Footer from './components/Footer';
+import WorkExperienceSection from './components/WorkExperienceSection';
 
 const App = () => {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -31,86 +32,18 @@ const App = () => {
       title: 'Work Experience',
       content: (
         <Section title="Work Experience">
-          <Card
-            title="Raytheon Technologies"
-            subtitle="Signal Processing Engineer II (Scrum Master) | Tucson, AZ | Jan 2024 – Present"
-            description="Led daily stand-up meetings, developed cross-organization software applications for analyzing missile/target tracking scenarios, wrote signal processing algorithms, and contributed to software architecture."
-          />
-          <Card
-            title="Sandia National Laboratories"
-            subtitle="Computational Simulation Infrastructure Intern | Las Cruces, NM | Dec 2022 – Jan 2024"
-            description="Implemented a CI/CD system to ensure seamless mirroring of repository updates across classified and unclassified networks, improving workflow efficiency."
-          />
-          <Card
-            title="New Mexico State University"
-            subtitle="Machine Learning Research Assistant | Las Cruces, NM | Feb 2023 – Dec 2023"
-            description="Analyzed the MIMIC-III dataset to develop a multifunctional machine learning model for sentiment analysis, patient background history, and clinical note topic extraction, enhancing healthcare insights."
-          />
-          <Card
-            title="Amazon"
-            subtitle="Hardware Development Engineering Intern | Sunnyvale, CA | May 2023 – Aug 2023"
-            description="Led the development of a cloud-based simulation application for battery use-cases, leveraging AWS infrastructure. Developed a dynamic front-end using React and a back-end simulation engine with Flask and PyBaMM."
-          />
-          <Card
-            title="Netflix"
-            subtitle="Apprenticeship | Sunnyvale, CA | May 2023 – Aug 2023"
-            description="Demonstrated expertise in Spring Boot and RESTful web services by implementing robust applications with comprehensive test coverage. Gained proficiency in GraphQL and Mockito for API development."
-          />
-          <Card
-            title="BlackSky"
-            subtitle="Geospatial/Software Developer Co-Op | Las Cruces, NM | Sep 2022 – Mar 2023"
-            description="Developed synthetic data using rendered.ai for training supervised learning models to identify missile vehicles. Created presentations for Department of Defense customers, showcasing innovative solutions."
-          />
-          <Card
-            title="Johns Hopkins University Applied Physics Laboratory"
-            subtitle="Electrical/Software Engineering Intern | Laurel, MD | May 2022 – Aug 2022"
-            description="Developed a high-performance 1024-point FFT on the RB5 platform using Hexagon SDK. Designed an efficient server-client data serialization system with Protocol Buffers and gRPC."
-          />
-          <Card
-            title="TMC Design Corporation"
-            subtitle="Electrical Engineering Co-Op | Las Cruces, NM | Oct 2019 – May 2022"
-            description="Designed detailed system layouts, power systems, and RF signal pathways. Conducted research to source innovative electrical components, and managed projects using advanced procurement strategies."
-          />
+          <WorkExperienceSection />
         </Section>
       ),
-    },    
+    },
     {
       title: 'Skills',
       content: (
         <Section title="Skills">
-          <Section title="Programming Languages">
-            <SkillBar skill="Python" level={90} />
-            <SkillBar skill="Java" level={85} />
-            <SkillBar skill="C++" level={85} />
-            <SkillBar skill="JavaScript" level={80} />
-            <SkillBar skill="TypeScript" level={75} />
-            <SkillBar skill="SQL" level={70} />
-          </Section>
-          <Section title="Front-End Development">
-            <SkillBar skill="React" level={80} />
-            <SkillBar skill="HTML & CSS" level={85} />
-            <SkillBar skill="JavaScript (ES6+)" level={80} />
-            <SkillBar skill="TypeScript" level={75} />
-          </Section>
-          <Section title="Back-End Development">
-            <SkillBar skill="Flask" level={80} />
-            <SkillBar skill="Spring Boot" level={75} />
-            <SkillBar skill="GraphQL" level={70} />
-            <SkillBar skill="RESTful APIs" level={85} />
-          </Section>
-          <Section title="Machine Learning & Data Science">
-            <SkillBar skill="TensorFlow" level={75} />
-            <SkillBar skill="PyTorch" level={70} />
-            <SkillBar skill="Scikit-Learn" level={80} />
-            <SkillBar skill="Pandas & NumPy" level={90} />
-          </Section>
-          <Section title="Tools & Technologies">
-            <SkillBar skill="AWS" level={70} />
-            <SkillBar skill="Docker" level={60} />
-            <SkillBar skill="Git/GitHub" level={85} />
-            <SkillBar skill="Linux" level={80} />
-            <SkillBar skill="Jenkins" level={65} />
-          </Section>
+          <SkillsSection />
+          <footer className="skills-section-footer">
+            © 2024 Jason Miller | Secret Clearance | Languages: English, Spanish
+          </footer>
         </Section>
       ),
     },
@@ -142,6 +75,16 @@ const App = () => {
             title="Mini Baja Data Acquisition"
             subtitle="Engineering Capstone Project | Aug 2022 – Dec 2022"
             description="Developed a data acquisition system for the Mini Baja team, incorporating sensors to monitor vehicle performance. Designed and soldered the hardware system to ensure high precision and reliability."
+          />
+          <Card
+            title="AI Sentient Garden"
+            subtitle="Interactive Art Installation | 2024"
+            description="Created an AI-powered interactive art installation that translates plant biofeedback into light and sound patterns using Arduino, sensors, and custom AI algorithms."
+          />
+          <Card
+            title="N-Queens Visualizer"
+            subtitle="Algorithm Visualization Tool | 2023"
+            description="Developed a modern algorithm visualizer for the N-Queens problem, showcasing step-by-step solutions with interactive pseudocode and animations."
           />
         </Section>
       ),
