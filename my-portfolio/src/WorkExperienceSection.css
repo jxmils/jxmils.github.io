@@ -1,82 +1,120 @@
-/* Timeline Section */
+/* General Styling */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
 .work-experience-section {
-    max-width: 100%;
-    height: 400px; /* Increased height for better spacing */
-    padding: 40px; /* Increased padding for a larger container */
-    background: #f9f9f9;
-    overflow: hidden;
-    position: relative;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Section Title */
-  .section-title {
-    text-align: center;
-    font-size: 24px;
-    font-weight: bold;
-    color: #007aff;
-    margin-bottom: 20px;
-  }
-  
-  /* Horizontal Timeline */
-  .horizontal-timeline {
-    display: flex;
-    flex-direction: row-reverse; /* Most recent experience on the right */
-    gap: 20px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 20px 0;
-    position: relative;
-  }
-  
-  /* Timeline Item */
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #0e5484;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* Timeline Container */
+.timeline {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-item {
+  position: relative;
+  margin: 2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.timeline-dot {
+  width: 12px;
+  height: 12px;
+  background: #0e5484;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e0e0e0;
+  z-index: -1;
+}
+
+.timeline-content {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  cursor: pointer;
+}
+
+.timeline-content:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Text Styling */
+.company-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0e5484;
+  margin-bottom: 0.5rem;
+}
+
+.role {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+
+.location {
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 1rem;
+}
+
+.responsibilities {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.responsibilities li {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .timeline-item {
-    flex: 0 0 350px; /* Larger item width */
-    position: relative;
-    background: #fff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, background-color 0.3s ease;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
-  
-  /* Hover Effect */
-  .timeline-item:hover {
-    transform: scale(1.05);
-    background-color: #007aff;
-    color: #fff;
+
+  .timeline-content {
+    width: 100%;
   }
-  
-  /* Marker */
-  .timeline-marker {
-    width: 12px;
-    height: 12px;
-    background: #007aff;
-    border-radius: 50%;
-    margin-bottom: 10px;
-  }
-  
-  /* Content Styles */
-  .experience-title {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .experience-subtitle {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 10px;
-  }
-  
-  .experience-description {
-    font-size: 14px;
-    color: #333;
-  }
-  
-  .timeline-item:hover .experience-subtitle,
-  .timeline-item:hover .experience-description {
-    color: #d9ecff;
-  }
-  
+}

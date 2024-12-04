@@ -2,22 +2,31 @@ import React, { useState } from 'react';
 import Header from './components/Header';
 import Tabs from './components/Tabs';
 import Section from './components/Section';
-import Card from './components/Card';
-import SkillsSection from './components/SkillsSection';
-import Footer from './components/Footer';
+import AboutMe from './components/AboutMe'; // Import About Me Section
 import WorkExperienceSection from './components/WorkExperienceSection';
+import SkillsSection from './components/SkillsSection';
+import Card from './components/Card';
+import Footer from './components/Footer';
 
 const App = () => {
   const [selectedTab, setSelectedTab] = useState(0);
 
   const sections = [
     {
+      title: 'About Me',
+      content: (
+        <Section title="About Me">
+          <AboutMe />
+        </Section>
+      ),
+    },
+    {
       title: 'Education',
       content: (
         <Section title="Education">
           <Card
             title="New Mexico State University"
-            subtitle="Masters Accelerated Program: Electrical Engineering - GPA: 3.889"
+            subtitle="Masters Accelerated Program: Electrical Engineering & Computer Science- GPA: 3.889"
             description="B.S. Electrical Engineering: Communication and Signal Processing | B.S. Computer Science"
           />
           <Card
