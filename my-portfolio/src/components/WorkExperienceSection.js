@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../WorkExperienceSection.css';
 
 const WorkExperienceSection = () => {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
   const experiences = [
     {
       company: 'Raytheon Technologies',
-      role: 'Signal Processing Engineer II (Scrum Master)',
+      role: 'Software Engineer II (Scrum Master)',
       location: 'Tucson, AZ',
       dates: 'Jan 2024 – Present',
       responsibilities: [
@@ -17,7 +19,7 @@ const WorkExperienceSection = () => {
     },
     {
       company: 'Sandia National Laboratories',
-      role: 'Computational Simulation Intern',
+      role: 'Software Engineering Intern',
       location: 'Las Cruces, NM',
       dates: 'Dec 2022 – Jan 2024',
       responsibilities: [
@@ -38,7 +40,7 @@ const WorkExperienceSection = () => {
     },
     {
       company: 'Netflix',
-      role: 'Apprenticeship',
+      role: 'Software Apprenticeship',
       location: 'Sunnyvale, CA',
       dates: 'May 2023 – Aug 2023',
       responsibilities: [
@@ -49,7 +51,7 @@ const WorkExperienceSection = () => {
     },
     {
       company: 'BlackSky',
-      role: 'Geospatial/Software Developer Co-Op',
+      role: 'Software Engineering Intern',
       location: 'Las Cruces, NM',
       dates: 'Sep 2022 – Mar 2023',
       responsibilities: [
@@ -60,8 +62,8 @@ const WorkExperienceSection = () => {
     },
     {
       company: 'Johns Hopkins University Applied Physics Laboratory',
-      role: 'Electrical/Software Engineering Intern',
-      location: 'Laurel, MD',
+      role: 'Software Engineering Intern',
+      location: 'Laurel, MD, USA',
       dates: 'May 2022 – Aug 2022',
       responsibilities: [
         'Pioneered advancements in embedded systems by independently researching and developing a high-performance 1024-point Fast Fourier Transform (FFT) implementation on the RB5 platform’s CPU and DSP using Hexagon SDK, achieving significant speed improvements and enabling further integration into embedded applications.',
@@ -70,8 +72,8 @@ const WorkExperienceSection = () => {
     },
     {
       company: 'TMC Design Corporation',
-      role: 'Electrical Engineering Co-Op',
-      location: 'Las Cruces, NM',
+      role: 'Electrical Engineering Intern',
+      location: 'Las Cruces, NM, USA',
       dates: 'Oct 2019 – May 2022',
       responsibilities: [
         'Gained project management expertise by contributing to the successful delivery of multiple projects, employing advanced procurement strategies like CHESS and Gantt charts to secure resources and ensure timely execution.',
@@ -84,7 +86,7 @@ const WorkExperienceSection = () => {
     {
       company: 'New Mexico State University',
       role: 'Associate Justice',
-      location: 'Las Cruces, NM',
+      location: 'Las Cruces, NM, USA',
       dates: 'Feb 2019 – Oct 2019',
       responsibilities: [
         'Revised the Associated Students of New Mexico’s Law book to improve support for student life and streamline internal governmental structure and procedures.',
@@ -94,25 +96,30 @@ const WorkExperienceSection = () => {
   ];
 
   return (
-    <section className="work-experience-section">
-      <div className="timeline">
+    <div className="work-experience-section">
+      <ul className="timeline">
         {experiences.map((exp, index) => (
-          <div key={index} className="timeline-item">
+          <li
+            key={index}
+            className={`timeline-item ${index === hoveredIndex ? 'active' : ''}`}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
             <div className="timeline-dot"></div>
             <div className="timeline-content">
               <h3 className="company-name">{exp.company}</h3>
               <p className="role">{exp.role}</p>
               <p className="location">{exp.location} | {exp.dates}</p>
               <ul className="responsibilities">
-                {exp.responsibilities.map((item, i) => (
-                  <li key={i}>{item}</li>
+                {exp.responsibilities.map((responsibility, idx) => (
+                  <li key={idx}>{responsibility}</li>
                 ))}
               </ul>
             </div>
-          </div>
+          </li>
         ))}
-      </div>
-    </section>
+      </ul>
+    </div>
   );
 };
 

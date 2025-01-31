@@ -6,7 +6,6 @@ const AboutMe = () => {
   return (
     <section className="about-me-section">
       <div className="about-me-content">
-        <h2>About Me</h2>
 
         {/* Introduction Section */}
         <div className="about-me-intro">
