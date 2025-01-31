@@ -1,0 +1,97 @@
+.about-me-section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: linear-gradient(145deg, #ffffff, #f3f4f6);
+  border-radius: 16px; /* Increased radius for a softer feel */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-me-section:hover {
+  transform: scale(1.02); /* Subtle scaling on hover */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Increased shadow for hover */
+}
+
+.about-me-content {
+  flex: 1;
+  padding: 1.5rem; /* Increased padding for a more spacious layout */
+}
+
+.about-me-content h2 {
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* Apple font */
+  font-size: 2.2rem; /* Slightly larger */
+  font-weight: 700;
+  color: #007aff; /* Apple's signature blue */
+  margin-bottom: 1rem;
+  position: relative;
+  text-align: left;
+}
+
+.about-me-content h2::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: #007aff; /* Accent underline */
+  border-radius: 2px;
+}
+
+.about-me-content p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 1rem;
+  font-weight: 300; /* Softer font weight for readability */
+}
+
+.about-me-content strong {
+  color: #007aff;
+  font-weight: 500;
+}
+
+.about-me-photo {
+  flex: 0 0 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #e9e9e9, #ffffff); /* Subtle gradient background */
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.6), 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.about-me-photo img {
+  max-width: 100%;
+  border-radius: 50%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-me-photo img:hover {
+  transform: scale(1.05); /* Slight zoom on hover */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Elevated shadow on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .about-me-section {
+    flex-direction: column; /* Stack content for smaller screens */
+    text-align: center;
+  }
+
+  .about-me-content h2 {
+    text-align: center; /* Center-align for smaller screens */
+  }
+
+  .about-me-photo {
+    margin-bottom: 1.5rem; /* Add spacing below the photo */
+  }
+}
