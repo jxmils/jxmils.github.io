@@ -1,0 +1,19 @@
+.timeline-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    position: relative;
+  }
+  
+  /* Optional vertical line for added effect */
+  .timeline-container::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-50%);
+  }
+  

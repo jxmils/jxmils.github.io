@@ -1,69 +1,87 @@
-/* General Styling */
 .header {
-  background-color: #f8f8f8;
-  padding: 20px;
+  position: relative;
+  background-color: #0e1a2b;
+  color: white;
   text-align: center;
-  border-bottom: 2px solid #ddd;
+  padding: 100px 20px;
+  overflow: hidden;
+  height: 200px;
 }
 
+/* Add a dark overlay behind header content */
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  z-index: 0;
+}
+
+.graph-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Ensure Content is Above Background and Overlay */
 .header-content {
-  max-width: 800px;
-  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  /* Optional: add a slight background to further boost readability */
+  padding: 20px;
 }
 
 .header-title {
-  font-size: 2.5rem;
-  color: #333;
+  font-size: 3rem;
   margin-bottom: 10px;
+  animation: slideIn 1s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .header-subtitle {
-  font-size: 1.2rem;
-  color: #666;
+  font-size: 1.5rem;
   margin-bottom: 20px;
+  animation: slideIn 1s ease-out forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-/* Contact Section Styling */
-.header-contact {
-  display: flex; /* Stack items horizontally */
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
-  justify-content: center; /* Center items horizontally */
-  align-items: center; /* Align items vertically */
-  gap: 20px; /* Add spacing between items */
-  margin-top: 10px;
-}
-
-.contact-item {
-  font-size: 1rem;
-  color: #333;
-}
-
-.contact-item a {
-  color: #0e5484;
-  text-decoration: none;
-}
-
-.contact-item a:hover {
-  text-decoration: underline;
-}
-
-/* Social Links Styling */
+.header-contact,
 .header-socials {
-  display: flex; /* Stack social icons horizontally */
-  gap: 10px; /* Space between icons */
+  animation: slideIn 1s ease-out forwards;
+  animation-delay: 0.6s;
+  opacity: 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Keyframe animations */
+@keyframes slideIn {
+  0% {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .social-link {
-  color: #0e5484;
-  text-decoration: none;
-  transition: transform 0.2s, color 0.2s;
+  color: white;
+  margin: 0 5px;
+  transition: transform 0.3s ease;
 }
 
 .social-link:hover {
   transform: scale(1.2);
-  color: #0077b5; /* LinkedIn Blue */
-}
-
-.social-link:nth-child(2):hover {
-  color: #333; /* GitHub Black */
 }
