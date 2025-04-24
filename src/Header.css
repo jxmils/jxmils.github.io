@@ -1,25 +1,15 @@
+/* Consolidated Header Styles */
 .header {
   position: relative;
-  background-color: #0e1a2b;
-  color: white;
-  text-align: center;
-  padding: 100px 20px;
+  height: 175px;
   overflow: hidden;
-  height: 200px;
+  background-color: #f8f8f8;
+  text-align: center;
+  margin: 0;
+  padding: 0;
 }
 
-/* Add a dark overlay behind header content */
-.header::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-  z-index: 0;
-}
-
+/* Graph canvas remains unchanged */
 .graph-canvas {
   position: absolute;
   top: 0;
@@ -30,58 +20,53 @@
   pointer-events: none;
 }
 
-/* Ensure Content is Above Background and Overlay */
+/* Header content overlaid and centered */
 .header-content {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1;
-  /* Optional: add a slight background to further boost readability */
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
 }
 
+/* Keyframes for fadeInUp */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Updated text styles with animations */
 .header-title {
-  font-size: 3rem;
-  margin-bottom: 10px;
-  animation: slideIn 1s ease-out forwards;
-  animation-delay: 0.2s;
+  font-size: 2.5rem;
+  margin: 0;
+  line-height: 1.2;
+  color: #333;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
   opacity: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  animation: fadeInUp 0.8s ease-out forwards;
+  animation-delay: 0.3s;
 }
 
 .header-subtitle {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  animation: slideIn 1s ease-out forwards;
-  animation-delay: 0.4s;
+  font-size: 1.2rem;
+  margin: 0;
+  line-height: 1.2;
+  color: #666;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
   opacity: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.header-contact,
-.header-socials {
-  animation: slideIn 1s ease-out forwards;
-  animation-delay: 0.6s;
-  opacity: 0;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-}
-
-/* Keyframe animations */
-@keyframes slideIn {
-  0% {
-    transform: translateY(50px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.social-link {
-  color: white;
-  margin: 0 5px;
-  transition: transform 0.3s ease;
-}
-
-.social-link:hover {
-  transform: scale(1.2);
+  animation: fadeInUp 0.8s ease-out forwards;
+  animation-delay: 0.5s;
 }

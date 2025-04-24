@@ -4,9 +4,10 @@ import Tabs from './components/Tabs';
 import Section from './components/Section';
 import AboutMe from './components/AboutMe';
 import WorkExperienceSection from './components/WorkExperienceSection';
-import EducationSection from './components/EducationSection'; // Import Education Section
+import EducationSection from './components/EducationSection';
 import SkillsSection from './components/SkillsSection';
-import ProjectsSection from './components/ProjectsSection'; // Import Projects Section
+import ProjectsSection from './components/ProjectsSection';
+import ContactMe from './components/ContactMe';  // Import the new Contact Me component
 import Footer from './components/Footer';
 
 const App = () => {
@@ -25,7 +26,7 @@ const App = () => {
       title: 'Education',
       content: (
         <Section title="Education">
-          <EducationSection /> {/* Replace with Education Section */}
+          <EducationSection />
         </Section>
       ),
     },
@@ -33,7 +34,7 @@ const App = () => {
       title: 'Work Experience',
       content: (
         <Section title="Work Experience">
-          <WorkExperienceSection /> {/* Replace with Work Experience Section */}
+          <WorkExperienceSection />
         </Section>
       ),
     },
@@ -52,7 +53,15 @@ const App = () => {
       title: 'Projects',
       content: (
         <Section title="Projects">
-          <ProjectsSection /> {/* Replace with Projects Section */}
+          <ProjectsSection />
+        </Section>
+      ),
+    },
+    {
+      title: 'Contact',
+      content: (
+        <Section title="Contact">
+          <ContactMe />
         </Section>
       ),
     },

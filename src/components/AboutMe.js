@@ -46,11 +46,7 @@ const AboutMe = () => {
         <div className="about-me-aspirations">
           <h3>My Aspirations</h3>
           <p>
-            My passion lies in using technology to solve societal challenges. I am particularly interested in leveraging Artificial Intelligence to address healthcare 
-            inequalities. By creating AI-driven tools that enhance medical diagnosis and treatment, I aim to make quality healthcare accessible to all, regardless of their background.
-          </p>
-          <p>
-            My experiences have shaped me into a compassionate, determined, and innovative thinker, ready to tackle the most pressing issues in technology and healthcare.
+            My research explores how optimized interconnects, in-network computing, and distributed memory architectures can enable faster, more efficient training of large neural networks.
           </p>
         </div>
       </div>
