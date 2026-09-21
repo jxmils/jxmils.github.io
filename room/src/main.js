@@ -28,7 +28,6 @@ const LOOK = {
   deskSpot: { color: 0xffb76e, intensity: 2.6, angle: 1.05, penumbra: 1.0 },
   pictureLight: { color: 0xffc98a, intensity: 0.38, distance: 1.7 },
   screen: { color: 0xcfe0ff, emissive: 0.8, glowIntensity: 0.24, glowDistance: 1.4 },
-  floodlight: { color: 0xffca91, intensity: 6200 },
 };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -555,46 +554,26 @@ function addExteriorPracticals(root, roomCenter) {
   if (toRoom.lengthSq() < 1e-6) return;
   toRoom.setLength(size.y * 1.15);
 
-  const flood = new THREE.SpotLight(
-    LOOK.floodlight.color,
-    LOOK.floodlight.intensity,
-    size.y * 6.0,
-    1.02,
-    0.7,
-    2,
-  );
-  flood.position.copy(center).add(toRoom);
-  flood.position.y = bounds.min.y + 0.6;
-  flood.target.position.copy(center).setY(bounds.min.y + size.y * 0.55);
-  flood.layers.set(1);
-  flood.castShadow = true;
-  flood.shadow.mapSize.set(2048, 2048);
-  flood.shadow.camera.layers.set(1);
-  flood.shadow.camera.near = 1;
-  flood.shadow.camera.far = size.y * 4;
-  flood.shadow.normalBias = 0.035;
-  flood.shadow.bias = -0.0001;
-  flood.shadow.radius = 3;
-  scene.add(flood);
-  scene.add(flood.target);
-
-  const fill = new THREE.PointLight(0x9fb6e0, LOOK.floodlight.intensity * 0.18, size.y * 5.0, 2);
-  fill.position.copy(center).sub(toRoom).setY(bounds.min.y + size.y * 0.8);
-  fill.layers.set(1);
-  scene.add(fill);
-  // Keep the outdoor light independent of the studio lights inside the room.
-  // Cool moonlight reveals the lawn; warm architectural light models the stone.
-  const stoneWash = new THREE.DirectionalLight(0xffd1a2, 0.30);
-  stoneWash.position.copy(center).add(toRoom).setY(bounds.min.y + size.y * 0.3);
-  stoneWash.target.position.copy(center);
-  stoneWash.layers.set(1);
-  scene.add(stoneWash, stoneWash.target);
-  const moon = new THREE.DirectionalLight(0xaac7ed, 0.26);
-  moon.position.copy(center).add(new THREE.Vector3(45, 65, -35));
+  // Moonlight comes from above and across the facade. Warmth belongs to the
+  // reading-room windows, without a frontal spotlight or a pool on the lawn.
+  const moon = new THREE.DirectionalLight(0xd1d6df, 3.0);
+  moon.position.copy(center).add(new THREE.Vector3(45, 65, 8));
   moon.target.position.copy(center);
   moon.layers.set(1);
+  moon.castShadow = true;
+  moon.shadow.mapSize.set(2048, 2048);
+  moon.shadow.camera.layers.set(1);
+  const extent = size.y * 0.8;
+  Object.assign(moon.shadow.camera, {
+    left: -extent, right: extent, top: extent, bottom: -extent,
+    near: 1, far: 140,
+  });
+  moon.shadow.camera.updateProjectionMatrix();
+  moon.shadow.normalBias = 0.025;
+  moon.shadow.bias = -0.00008;
+  moon.shadow.radius = 3;
   scene.add(moon, moon.target);
-  const nightAmbient = new THREE.AmbientLight(0x9cafca, 0.24);
+  const nightAmbient = new THREE.AmbientLight(0x9cafca, 0.32);
   nightAmbient.layers.set(1);
   scene.add(nightAmbient);
 
@@ -610,7 +589,7 @@ function addExteriorPracticals(root, roomCenter) {
   });
   panes.sort((a,b) => a.paneCenter.distanceToSquared(roomCenter)-b.paneCenter.distanceToSquared(roomCenter));
   panes.slice(0,6).forEach(({paneCenter,outward}) => {
-    const spill = new THREE.PointLight(0xffc47c, 16, 3.6, 2);
+    const spill = new THREE.PointLight(0xffc47c, 4, 2.4, 2);
     spill.position.copy(paneCenter).addScaledVector(outward, .18);
     spill.layers.set(1);
     scene.add(spill);
@@ -715,6 +694,17 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
         object.receiveShadow = !object.name.startsWith('ExteriorSky');
         if (exterior) {
           object.layers.set(1);
+          // Keep the lawn nocturnal beneath the broad moonlight. Clone only
+          // these outdoor materials so indoor plants retain their finish.
+          if (object.name.startsWith('ExteriorGround') || object.name.startsWith('ExteriorGrass')) {
+            const shadeLawn = (material) => {
+              const copy = material.clone();
+              copy.color.multiplyScalar(0.38);
+              return copy;
+            };
+            object.material = Array.isArray(object.material)
+              ? object.material.map(shadeLawn) : shadeLawn(object.material);
+          }
           const materials = Array.isArray(object.material) ? object.material : [object.material];
           materials.forEach((material) => {
             material.envMapIntensity = 0.3;
