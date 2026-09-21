@@ -4,7 +4,6 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { batchStaticRoom } from './scene-performance.js';
-import { finishInteriorMaterials, finishMonitor, addInteriorBounce, addWindowReflection, InteriorContactShadows } from './interior-finish.js';
 import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles } from './room-motion.js';
 
 const canvas = document.querySelector('#room-canvas');
@@ -21,14 +20,14 @@ const LOOK = {
   background: 0x080b12,
   envIntensity: 0.5,
   key: { color: 0xffdfb8, intensity: 1.15 },
-  bounce: { color: 0xa07953, intensity: 0.28 },
-  coolRim: { color: 0x6d8bd6, intensity: 0.30 },
+  bounce: { color: 0x4a587a, intensity: 0.28 },
+  coolRim: { color: 0x6d8bd6, intensity: 0.55 },
   frontFill: { color: 0xe2d4bf, intensity: 0.5 },
   ambient: { color: 0xa2acbb, intensity: 0.18 },
   hemi: { sky: 0xc2c8d1, ground: 0x79654d, intensity: 0.48 },
   deskSpot: { color: 0xffb76e, intensity: 2.6, angle: 1.05, penumbra: 1.0 },
   pictureLight: { color: 0xffc98a, intensity: 0.38, distance: 1.7 },
-  screen: { color: 0xcfe0ff, emissive: 0.65, glowIntensity: 0.24, glowDistance: 1.4 },
+  screen: { color: 0xcfe0ff, emissive: 0.8, glowIntensity: 0.24, glowDistance: 1.4 },
 };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -131,7 +130,6 @@ const pointer = new THREE.Vector2();
 let monitorScreen = null;
 let monitorBaseMaterial = null;
 let roomModel = null;
-let contactShadows = null;
 let horizontalFov = null;
 let homePose = null;
 let flight = null;
@@ -718,7 +716,6 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
         }
       }
     });
-    finishInteriorMaterials(roomModel, isExterior);
     scene.add(roomModel);
     useExportedCamera(roomModel);
     camera.layers.enable(1);
@@ -727,7 +724,6 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
     if (monitorScreen?.material) {
       monitorBaseMaterial = monitorScreen.material;
       monitorScreen.material = monitorBaseMaterial.clone();
-      finishMonitor(monitorScreen.material);
       // The screen is the focal point, so it stays lit rather than only
       // glowing on hover.
       monitorScreen.material.emissiveIntensity = LOOK.screen.emissive;
@@ -742,8 +738,6 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
     addDeskPracticals(roomModel);
     addLibraryPracticals(roomModel);
     addExteriorPracticals(roomModel, roomCenter);
-    addInteriorBounce(scene, roomModel);
-    addWindowReflection(scene, roomModel);
     if (roomModel.getObjectByName('ArchLeftWallCornice')) {
       for (const z of [-1.84, 0.05, 1.94]) {
         const wash = new THREE.PointLight(0xffc58a, 0.85, 2.5, 2);
@@ -772,7 +766,6 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
 
     const geometryBudget = batchStaticRoom(roomModel, isExterior);
     if (import.meta.env.DEV) console.info(`Static room meshes: ${geometryBudget.before} -> ${geometryBudget.after}`);
-    contactShadows = new InteriorContactShadows(scene, camera, monitorScreen);
     renderer.shadowMap.needsUpdate = true;
     roomReady = true;
     controls.enabled = true;
@@ -1046,7 +1039,6 @@ function animate(now = performance.now()) {
       renderer.render(scene, camera);
       camera.layers.set(0);
       renderer.render(scene, camera);
-      if (contactShadows) contactShadows.render(renderer, canvas.clientWidth, canvas.clientHeight);
     });
     camera.layers.mask = savedLayers;
     if (roomReady) renderer.shadowMap.autoUpdate = false;
