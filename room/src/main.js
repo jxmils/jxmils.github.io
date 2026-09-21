@@ -28,7 +28,7 @@ const LOOK = {
   deskSpot: { color: 0xffb76e, intensity: 2.6, angle: 1.05, penumbra: 1.0 },
   pictureLight: { color: 0xffc98a, intensity: 0.38, distance: 1.7 },
   screen: { color: 0xcfe0ff, emissive: 0.8, glowIntensity: 0.24, glowDistance: 1.4 },
-  floodlight: { color: 0xffc68f, intensity: 4400 },
+  floodlight: { color: 0xffca91, intensity: 6200 },
 };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -450,7 +450,7 @@ function focusMonitor() {
 // whole would drag the room's centre out through the wall and stretch the
 // shadow frustum across a hundred metres of empty ground, so the exterior is
 // excluded from any bounds used for placing lights.
-const EXTERIOR_PREFIXES = ['ExteriorGround', 'ExteriorSky', 'ExteriorGrass', 'ExteriorGarden', 'ExteriorSquareFence', 'RadcamOutside', 'RadcamGuard', 'College'];
+const EXTERIOR_PREFIXES = ['ExteriorGround', 'ExteriorSky', 'ExteriorGrass', 'ExteriorGarden', 'ExteriorSquareFence', 'ExteriorOxford', 'RadcamOutside', 'RadcamGuard', 'College'];
 
 function hasAncestorNamed(object, prefix) {
   let node = object;
@@ -584,7 +584,7 @@ function addExteriorPracticals(root, roomCenter) {
   scene.add(fill);
   // Keep the outdoor light independent of the studio lights inside the room.
   // Cool moonlight reveals the lawn; warm architectural light models the stone.
-  const stoneWash = new THREE.DirectionalLight(0xffd1a2, 0.22);
+  const stoneWash = new THREE.DirectionalLight(0xffd1a2, 0.30);
   stoneWash.position.copy(center).add(toRoom).setY(bounds.min.y + size.y * 0.3);
   stoneWash.target.position.copy(center);
   stoneWash.layers.set(1);
@@ -594,7 +594,7 @@ function addExteriorPracticals(root, roomCenter) {
   moon.target.position.copy(center);
   moon.layers.set(1);
   scene.add(moon, moon.target);
-  const nightAmbient = new THREE.AmbientLight(0x9cafca, 0.18);
+  const nightAmbient = new THREE.AmbientLight(0x9cafca, 0.24);
   nightAmbient.layers.set(1);
   scene.add(nightAmbient);
 
