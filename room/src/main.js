@@ -2,6 +2,7 @@ import roomUrl from './assets/room.glb?url';
 import { MeshoptDecoder } from 'meshoptimizer/decoder';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { batchStaticRoom } from './scene-performance.js';
 import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles } from './room-motion.js';
@@ -20,12 +21,12 @@ const LOOK = {
   background: 0x080b12,
   envIntensity: 0.5,
   key: { color: 0xffdfb8, intensity: 1.15 },
-  bounce: { color: 0x4a587a, intensity: 0.28 },
-  coolRim: { color: 0x6d8bd6, intensity: 0.55 },
+  bounce: { color: 0xd3b291, intensity: 0.18 },
+  coolRim: { color: 0x6d8bd6, intensity: 0.35 },
   frontFill: { color: 0xe2d4bf, intensity: 0.5 },
   ambient: { color: 0xa2acbb, intensity: 0.18 },
   hemi: { sky: 0xc2c8d1, ground: 0x79654d, intensity: 0.48 },
-  deskSpot: { color: 0xffb76e, intensity: 2.6, angle: 1.05, penumbra: 1.0 },
+  deskSpot: { color: 0xffc185, intensity: 2.1, angle: 1.05, penumbra: 1.0 },
   pictureLight: { color: 0xffc98a, intensity: 0.38, distance: 1.7 },
   screen: { color: 0xcfe0ff, emissive: 0.8, glowIntensity: 0.24, glowDistance: 1.4 },
 };
@@ -596,18 +597,50 @@ function addExteriorPracticals(root, roomCenter) {
   });
 }
 
-// glTF does not carry area lights. Recreate a concealed, broad wall wash
-// behind the shelf lip instead of bright points along the visible front edge.
+// glTF does not carry area lights. A continuous concealed strip gives the
+// artwork an even warm wash; a dim broad emitter approximates desktop bounce.
+// Keep these lights exclusively on the interior render layer.
 function addLibraryPracticals(root) {
+  RectAreaLightUniformsLib.init();
+  const area = (name, color, intensity, width, height, position, target) => {
+    const light = new THREE.RectAreaLight(color, intensity, width, height);
+    light.name = name;
+    light.position.copy(position);
+    light.lookAt(target);
+    light.layers.set(0);
+    scene.add(light);
+  };
   const shelf = root.getObjectByName('LibraryWarmStrip');
-  if (!shelf) return;
-  const bounds = new THREE.Box3().setFromObject(shelf);
-  const center = bounds.getCenter(new THREE.Vector3());
-  for (const t of [0.1, 0.3, 0.5, 0.7, 0.9]) {
-    const x = THREE.MathUtils.lerp(bounds.min.x, bounds.max.x, t);
-    const lamp = new THREE.PointLight(0xffbe7a, 0.9, 2.6, 2);
-    lamp.position.set(x, center.y - 0.14, center.z - 0.30);
-    scene.add(lamp);
+  if (shelf) {
+    const bounds = new THREE.Box3().setFromObject(shelf);
+    const center = bounds.getCenter(new THREE.Vector3());
+    area('InteriorShelfWash', 0xffc78f, 9.0, bounds.max.x - bounds.min.x, 0.12,
+      center.clone().add(new THREE.Vector3(0, -0.065, -0.13)),
+      center.clone().add(new THREE.Vector3(0, -0.9, 0.20)));
+    // Preserve the warm glow along the wooden lip without the former hot spots.
+    for (const t of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+      const glow = new THREE.PointLight(0xffc78f, 0.48, 2.0, 2);
+      glow.position.set(THREE.MathUtils.lerp(bounds.min.x, bounds.max.x, t),
+        center.y - 0.14, center.z - 0.30);
+      glow.layers.set(0);
+      scene.add(glow);
+    }
+  }
+  const desk = root.getObjectByName('DeskTop');
+  if (desk) {
+    const bounds = new THREE.Box3().setFromObject(desk);
+    const center = bounds.getCenter(new THREE.Vector3());
+    area('InteriorDesktopBounce', 0xffd7af, 0.22, 2.2, 0.55,
+      new THREE.Vector3(center.x, bounds.max.y + 0.14, center.z - 0.15),
+      new THREE.Vector3(center.x, bounds.max.y + 1.1, center.z + 0.8));
+  }
+  const riser = root.getObjectByName('MonitorRiser');
+  if (riser) {
+    const bounds = new THREE.Box3().setFromObject(riser);
+    const center = bounds.getCenter(new THREE.Vector3());
+    area('InteriorRiserStrip', 0xffc78f, 1.7, (bounds.max.x - bounds.min.x) * 0.86, 0.045,
+      new THREE.Vector3(center.x, bounds.min.y - 0.01, bounds.min.z + 0.02),
+      new THREE.Vector3(center.x, bounds.min.y - 0.16, bounds.min.z - 0.30));
   }
   const ceiling = root.getObjectByName('ArchCeilingField');
   if (ceiling) {
