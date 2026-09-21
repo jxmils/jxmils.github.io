@@ -418,6 +418,9 @@ body:not(.room-ready) .room-ui { opacity: 0; visibility: hidden; }
 .navigation-help { width: min(360px, calc(100vw - 28px)); padding: 20px 22px; border: 1px solid rgb(230 213 180 / .2); border-radius: 16px; color: #eee4d3; background: rgb(17 26 32 / .96); box-shadow: 0 12px 40px rgb(0 0 0 / .3); backdrop-filter: blur(20px); }
 .navigation-help strong { font-size: 14px; font-weight: 550; }
 .navigation-help p { font-size: 12px; line-height: 1.7; color: #c5c4c0; margin: 12px 0 0; }
+.artwork-credit { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgb(230 213 180 / .15); font-size: 12px; }
+.artwork-credit summary { cursor: pointer; color: #c5c4c0; }
+.artwork-credit a { color: #e4cfaa; text-underline-offset: 3px; }
 kbd { font: inherit; padding: 2px 4px; border: 1px solid #59616a; border-radius: 4px; color: #eee4d3; }
 .monitor-hint { position: fixed; pointer-events: none; padding: 9px 13px; border-radius: 10px; border: 1px solid rgb(230 213 180 / .24); background: rgb(18 26 31 / .91); color: #f1e5cd; font-size: 12px; opacity: 0; transform: translateY(4px); transition: opacity 160ms ease, transform 160ms ease; z-index: 3; }
 .monitor-hint.visible { opacity: 1; transform: translateY(0); }

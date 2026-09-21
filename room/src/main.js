@@ -756,9 +756,12 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
       }
     }
     if (roomModel.getObjectByName('ArchOdysseusPlinth')) {
+      const sculptureCenter = new THREE.Box3()
+        .setFromObject(roomModel.getObjectByName('ArchOdysseusPlinth'))
+        .getCenter(new THREE.Vector3());
       const sculptureLight = new THREE.SpotLight(0xffdfb0, 3, 3.8, 0.45, 0.65, 2);
-      sculptureLight.position.set(-2.90, 2.73, -2.03);
-      sculptureLight.target.position.set(-3.46, 1.52, -2.02);
+      sculptureLight.position.set(sculptureCenter.x + 0.56, 2.73, sculptureCenter.z - 0.01);
+      sculptureLight.target.position.set(sculptureCenter.x, 1.55, sculptureCenter.z);
       sculptureLight.castShadow = true;
       sculptureLight.shadow.mapSize.set(1024, 1024);
       sculptureLight.shadow.camera.near = 0.15;
