@@ -1,19 +1,19 @@
 {
-  "sourceCommit": "3610e007488524809422c31ae6be5060102c7961",
-  "previousPagesCommit": "5512cc1d9a41f7c68b05bc97a5b05d3e21955176",
+  "sourceCommit": "65a826b2ea47ca53139810b12b81ae032b6cc493",
+  "previousPagesCommit": "f16c4f64f46778fdc95726da3b3712f4c9c1a076",
   "sourceDirectory": "room",
-  "builtAt": "2026-09-22T09:25:55.100340+00:00",
+  "builtAt": "2026-09-22T12:33:12.798013+00:00",
   "files": {
     "profile.html": "2ba7d7f68c8e939c9ccd763d6c9d802eaadea953f67add704866b1a958fb7886",
-    "index.html": "bf88feee1c9ea964f9c6a336f47c020ae4ffe73a953eefc41c9c9f4d70ab6256",
+    "index.html": "067f250f9c7f0ba06e82d17ed025d5757c9d233aaf184afc029fd9f1296655bc",
     "assets/room-DZV0F-tT.glb": "67e9446159ef67434106b0a04845394c191416270edea99b36323c5c0acaad11",
     "assets/jason-portrait-CEbsmSKs.jpg": "76c2d7ccd2d37e0aac39f95ea7e29e9f7bc11aa4c39db247f066509890167947",
-    "assets/room-CFtrvAV9.js": "f5feddf36993f0aae3c254322ef609d710c019d112d34e03fd07d871df143bf6",
     "assets/terminal-BS0GtDVT.js": "99d9d7354602909726023fac1f03abbcdcd7b862afcd1a203525b64320b5489e",
     "assets/three-B_x1fXK-.js": "12235aea2d7d8b68a2ee069dce0aefaaa0a000a9d58978039af300babd4f78d8",
+    "assets/room-CPtLDUO0.css": "f196b80107d18664c00b533e103c190ba0ade024938cdd5daec8de7e1d803426",
+    "assets/room-DNcVHj_C.js": "f5feddf36993f0aae3c254322ef609d710c019d112d34e03fd07d871df143bf6",
     "assets/portfolio-B-T98ZBR.css": "5615716a49cc028ed2007c3597a9bf5c76ee39b1b5909ebb789ff6a176e07b45",
     "assets/portfolio-BOVAOarG.js": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
-    "assets/room-BieRdg_5.css": "2b3e0bf7e15955295fa4d6a4fee32125cc2c09e39a8d5e3cc350b910442faf1c",
     "assets/favicon-FujqvBKN.svg": "a6e5f3a495f1ed8d88ae349f76ef18b4326b20c9159eae93b534d53641859002",
     "assets/main-B-HAvRPu.js": "ab398dc7e7f9bf8af4b617e5f5baf62d286272956dd06f859babf3748b1e759a"
   }
