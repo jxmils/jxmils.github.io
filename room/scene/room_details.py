@@ -36,8 +36,6 @@ def apply():
    bpy.data.objects.remove(o,do_unlink=True)
  graphite=mat('Graphite',(.055,.063,.067),.56)
  rubber=mat('Rubber',(.021,.025,.027),.85)
- meshmat=mat('Mesh weave',(.12,.135,.135),.94)
- cloth=mat('Seat upholstery',(.085,.12,.125),.93)
  silver=mat('Satin aluminum',(.37,.41,.42),.3,.7)
  # Brick-built miniature Death Star, on the book stack next to Jason's portrait.
  greys=[mat('Brick gray '+str(i),(.24+i*.025,.265+i*.025,.28+i*.025),.64) for i in range(4)]
@@ -101,26 +99,72 @@ def apply():
   x=cx+(i-2)*.052;ball=Vector((x,cy,z+.093))
   egg(P+'NewtonBall',ball,(.026,.026,.026),steel)
   for side in [-1,1]:cylinder(P+'NewtonWire',(x,cy+side*.073,z+.263),ball+Vector((0,side*.007,.023)),.0008,cord,8)
- # Ergonomic task chair: supported seat, breathable curved back, real casters.
+ apply_seating()
+ inside=bpy.data.collections.get('Architecture Interior Receivers')
+ if inside:
+  for ob in bpy.data.objects:
+   if ob.name.startswith((P,'Chair')) and ob.name not in inside.objects:inside.objects.link(ob)
+ bpy.context.view_layer.update()
+
+
+def apply_seating():
+ for o in list(bpy.data.objects):
+  if o.name.startswith('Chair') or o.name.startswith(P+'Rug'):
+   bpy.data.objects.remove(o,do_unlink=True)
+ graphite=mat('Graphite',(.055,.063,.067),.56)
+ rubber=mat('Rubber',(.021,.025,.027),.85)
+ silver=mat('Satin aluminum',(.37,.41,.42),.3,.7)
+ leather=mat('Espresso leather',(.030,.011,.006),.43)
+ bsdf=leather.node_tree.nodes.get('Principled BSDF')
+ bsdf.inputs['Specular IOR Level'].default_value=.32
+ bsdf.inputs['Coat Weight'].default_value=.08
+ bsdf.inputs['Coat Roughness'].default_value=.45
+ seam=mat('Espresso leather seams',(.014,.005,.0028),.6)
+ # Sculpted, padded espresso leather with tailored seams.
  cx,cy=.52,1.14
- box('ChairSeat',(cx,cy,.555),(.272,.263,.05),cloth,.065)
+ box('ChairSeat',(cx,cy,.555),(.272,.263,.054),leather,.055)
  box('ChairSeatUnderside',(cx,cy+.015,.496),(.218,.208,.018),graphite,.035)
- # Curved mesh back follows a gently reclined lumbar profile.
+ # The softly crowned front and back share a closed, curved upholstered shell.
  def backpoint(u,t):
-  width=.237+.031*math.sin(math.pi*t)
+  width=.237+.028*math.sin(math.pi*t)
   return Vector((cx+u*width,cy+.235+.10*t-.035*math.sin(math.pi*t)+.026*u*u,.64+.64*t))
- for side in [-1,1]:line('ChairBackSide',[backpoint(side,t) for t in [0,.2,.4,.6,.8,1]],.017,graphite)
- for t in [0,1]:line('ChairBackRail',[backpoint(u,t) for u in [-1,-.75,-.5,0,.5,.75,1]],.019,graphite)
- # Open net: geometry rather than a solid slab with painted mesh.
- for i in range(1,43):
-  t=i/43;line('ChairMeshHorizontal',[backpoint(u,t) for u in [-.96,-.5,0,.5,.96]],.0021,meshmat)
- for i in range(1,32):
-  u=-1+2*i/32;line('ChairMeshVertical',[backpoint(u,t) for t in [.025,.25,.5,.75,.975]],.0016,meshmat)
- line('ChairLumbarSupport',[backpoint(u,.22)+Vector((0,.023,0)) for u in [-.95,-.5,0,.5,.95]],.025,graphite)
+ verts=[];faces=[];nu,nt=16,24
+ for side in [-1,1]:
+  for j in range(nt+1):
+   t=j/nt
+   for i in range(nu+1):
+    u=-1+2*i/nu
+    crown=(max(0,1-u*u)*max(0,math.sin(math.pi*t)))**.6
+    p=backpoint(u,t)+Vector((0,side*(.017+.034*crown),0))
+    verts.append(p)
+ count=(nu+1)*(nt+1)
+ for side in range(2):
+  for j in range(nt):
+   for i in range(nu):
+    a=side*count+j*(nu+1)+i;face=(a,a+1,a+nu+2,a+nu+1)
+    faces.append(face if side==0 else face[::-1])
+ boundary=list(range(nu+1))+[j*(nu+1)+nu for j in range(1,nt+1)]+[nt*(nu+1)+i for i in range(nu-1,-1,-1)]+[j*(nu+1) for j in range(nt-1,0,-1)]
+ for a,b in zip(boundary,boundary[1:]+boundary[:1]):faces.append((b,a,a+count,b+count))
+ back=mesh('ChairLeatherBack',verts,faces,leather)
+ for face in back.data.polygons:face.use_smooth=True
+ sub=back.modifiers.new('Soft upholstered edges','SUBSURF');sub.levels=2;sub.render_levels=2
+ # Edge piping and restrained horizontal upholstery seams on both faces.
+ for side in [-1,1]:
+  for u in [-.97,.97]:line('ChairLeatherPiping',[backpoint(u,t)+Vector((0,side*.022,0)) for t in [.025,.12,.3,.5,.7,.9,.975]],.0023,seam)
+  for t in [.025,.975]:line('ChairLeatherPiping',[backpoint(u,t)+Vector((0,side*.022,0)) for u in [-.97,-.5,0,.5,.97]],.0023,seam)
+  for t in [.30,.66]:
+   pts=[]
+   for i in range(21):
+    u=-.94+1.88*i/20;crown=(max(0,1-u*u)*math.sin(math.pi*t))**.6
+    pts.append(backpoint(u,t)+Vector((0,side*(.018+.034*crown),0)))
+   line('ChairLeatherPanelSeam',pts,.0014,seam)
+ # Back support below the upholstered shell; it no longer crosses a mesh panel.
+ line('ChairBackSupport',[(cx,cy+.17,.47),(cx,cy+.28,.60),(cx,cy+.33,.80)],.025,graphite)
+ line('ChairSeatPiping',[(cx-.23,cy-.235,.568),(cx,cy-.25,.568),(cx+.23,cy-.235,.568),(cx+.257,cy,.568),(cx+.23,cy+.23,.568),(cx,cy+.247,.568),(cx-.23,cy+.23,.568),(cx-.257,cy,.568),(cx-.23,cy-.235,.568)],.002,seam)
  for side in [-1,1]:
   x=cx+side*.306
   line('ChairArmUpright',[(cx+side*.21,cy+.1,.48),(x,cy+.07,.54),(x,cy+.07,.745)],.019,graphite)
-  box('ChairArmPad',(x,cy-.02,.755),(.042,.151,.024),rubber,.03)
+  box('ChairArmPad',(x,cy-.02,.755),(.043,.151,.027),leather,.03)
  cylinder('ChairGasLift',(cx,cy,.155),(cx,cy,.49),.029,silver)
  cylinder('ChairLiftSleeve',(cx,cy,.16),(cx,cy,.34),.042,graphite)
  egg('ChairBaseHub',(cx,cy,.155),(.085,.085,.045),graphite)
@@ -137,18 +181,22 @@ def apply():
  rug=mat('Rug midnight sage',(.11,.16,.17),.99)
  border=mat('Rug oatmeal border',(.36,.34,.28),.99)
  stripe=mat('Rug muted weave',(.20,.25,.24),.99)
- base=box('ChairFuzzyMat',(cx,1.14,.022),(1.02,.92,.012),border,.014)
- box(P+'RugField',(cx,1.14,.036),(.956,.856,.004),rug,.008)
+ # Match both outer desk edges, not the off-centre chair position.
+ bpy.context.view_layer.update()
+ desk=bpy.data.objects['DeskTop']
+ xs=[(desk.matrix_world@Vector(v)).x for v in desk.bound_box]
+ rugx=(min(xs)+max(xs))/2;half=(max(xs)-min(xs))/2
+ base=box('ChairFuzzyMat',(rugx,1.14,.022),(half,.92,.012),border,.014)
+ box(P+'RugField',(rugx,1.14,.036),(half-.064,.856,.004),rug,.008)
  for side in [-1,1]:
   for offset,width in [(0,.006),(.018,.002)]:
-   box(P+'RugBorderStripe',(cx,1.14+side*(.824-offset),.041),(.931,width,.001),stripe,.001)
-   box(P+'RugBorderStripe',(cx+side*(.924-offset),1.14,.041),(width,.814,.001),stripe,.001)
+   box(P+'RugBorderStripe',(rugx,1.14+side*(.824-offset),.041),(half-.089,width,.001),stripe,.001)
+   box(P+'RugBorderStripe',(rugx+side*(half-.096-offset),1.14,.041),(width,.814,.001),stripe,.001)
  # Restrained woven cross-lines are flat and do not add per-frame work.
  for i in range(45):
-  box(P+'RugWeft',(cx,1.14-.79+i*.036,.041),(.9,.0007,.0005),stripe,.0003)
+  box(P+'RugWeft',(rugx,1.14-.79+i*.036,.041),(half-.12,.0007,.0005),stripe,.0003)
  inside=bpy.data.collections.get('Architecture Interior Receivers')
  if inside:
   for ob in bpy.data.objects:
-   if ob.name.startswith((P,'Chair')) and ob.name not in inside.objects:inside.objects.link(ob)
+   if ob.name.startswith(('Chair',P+'Rug')) and ob.name not in inside.objects:inside.objects.link(ob)
  bpy.context.view_layer.update()
-
