@@ -62,3 +62,17 @@ test('a slower foreground display retains elapsed motion time', () => {
   assert.ok(Math.abs(elapsed-1/15)<1e-12);
   loop.pause();
 });
+
+import { createMotionQuality } from '../src/frame-loop.js';
+test('motion quality ignores short stalls, adapts to sustained slow frames and restores sharp idle view',()=>{
+ const fast=createMotionQuality();
+ for(let i=0;i<300;i++) assert.equal(fast.sample(1/60,true),1);
+ assert.equal(fast.sample(.1,true),1);
+ const slow=createMotionQuality();
+ let scale=1;
+ for(let i=0;i<180;i++) scale=slow.sample(1/30,true);
+ assert.equal(scale,.8);
+ assert.equal(slow.sample(1/60,false),1);
+ assert.equal(slow.sample(1/60,true),.8);
+ assert.equal(slow.sample(1/60,false),1);
+});

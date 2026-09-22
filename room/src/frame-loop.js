@@ -24,3 +24,21 @@ export function roomPixelRatio(width, height, deviceRatio, coarse = false) {
   return Math.min(deviceRatio || 1, coarse ? 1.5 : 1.75,
     Math.sqrt(budget / Math.max(1, width * height)));
 }
+
+// Adapt only after sustained slow animation, never a single loading hiccup.
+// Keep the chosen motion budget for the visit, restoring full sharpness at rest.
+export function createMotionQuality() {
+  let scale = 1, slowSeconds = 0, warmup = .5;
+  return {
+    sample(dt, moving) {
+      if (!moving) { slowSeconds = 0; warmup = .5; return 1; }
+      if (warmup > 0) { warmup -= dt; return scale; }
+      slowSeconds = dt > 1 / 45 ? slowSeconds + Math.min(dt, .1) : Math.max(0, slowSeconds - dt * 2);
+      if (slowSeconds > 1.2 && scale > .8) {
+        scale = Math.max(.8, scale - .1);
+        slowSeconds = 0;
+      }
+      return scale;
+    },
+  };
+}

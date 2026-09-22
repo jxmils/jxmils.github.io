@@ -22,3 +22,13 @@ export function windowScissor(box, camera, width, height) {
   const ymax = Math.min(height, Math.ceil((top + 1) * height / 2) + 2);
   return xmax > x && ymax > y ? { x, y, width: xmax - x, height: ymax - y } : null;
 }
+
+// Crop the projection as well as the viewport. Scissoring alone saves pixels,
+// but still submits geometry from the entire room camera's field of view.
+export function fitWindowCamera(target, source, rect, width, height) {
+  target.copy(source, false);
+  target.layers.set(1);
+  target.setViewOffset(width, height, rect.x, height - rect.y - rect.height,
+    rect.width, rect.height);
+  return target;
+}

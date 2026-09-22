@@ -5,11 +5,11 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { batchStaticRoom } from './scene-performance.js';
+import { prepareStaticRoom } from './scene-performance.js';
 import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles, followInput } from './room-motion.js';
 
-import { windowScissor } from './window-render.js';
-import { createFrameLoop, roomPixelRatio } from './frame-loop.js';
+import { windowScissor, fitWindowCamera } from './window-render.js';
+import { createFrameLoop, roomPixelRatio, createMotionQuality } from './frame-loop.js';
 
 const canvas = document.querySelector('#room-canvas');
 const desktop = document.querySelector('#desktop');
@@ -51,6 +51,7 @@ renderer.autoClear = false;
 // Far plane has to clear the sky backdrop, which sits ~250 units out beyond
 // the building. At the old 100 the whole exterior was clipped away.
 let camera = new THREE.PerspectiveCamera(42, 1, 0.1, 900);
+const exteriorCamera = new THREE.PerspectiveCamera();
 camera.position.set(5.0, 4.4, 2.8);
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -145,6 +146,8 @@ let flight = null;
 let roomReady = false;
 let needsRender = true;
 let frameLoop = null;
+const motionQuality = createMotionQuality();
+let renderScale = 1;
 let hoverDirty = false;
 let returnPose = null;
 let openingComputer = false;
@@ -184,7 +187,7 @@ function setSize() {
   if (clientWidth === lastCanvasWidth && clientHeight === lastCanvasHeight) return;
   lastCanvasWidth = clientWidth;
   lastCanvasHeight = clientHeight;
-  renderer.setPixelRatio(roomPixelRatio(clientWidth, clientHeight, window.devicePixelRatio, coarsePointer.matches));
+  renderer.setPixelRatio(roomPixelRatio(clientWidth, clientHeight, window.devicePixelRatio, coarsePointer.matches) * renderScale);
   renderer.setSize(clientWidth, clientHeight, false);
   invalidate();
   camera.aspect = clientWidth / clientHeight;
@@ -848,7 +851,7 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
         scene.add(shelfWash);
       }
 
-      const geometryBudget = batchStaticRoom(roomModel, isExterior);
+      const geometryBudget = await prepareStaticRoom(roomModel, isExterior);
       if (import.meta.env.DEV) console.info(`Static room meshes: ${geometryBudget.before} -> ${geometryBudget.after}`);
       roomModel.updateMatrixWorld(true);
       roomModel.traverse(object => { object.matrixAutoUpdate = false; object.matrixWorldAutoUpdate = false; });
@@ -1141,6 +1144,15 @@ function animate(now, dt) {
     } else material.opacity = wanted;
     monitorOutline.visible = material.opacity > .003;
   }
+  const moving = !!flight || controlsMoving || zoomGoal !== null || pendingPan.lengthSq() > .0000001
+    || cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0 || monitorMoving;
+  const nextScale = motionQuality.sample(dt, moving);
+  if (Math.abs(nextScale - renderScale) > .001) {
+    renderScale = nextScale;
+    renderer.setPixelRatio(roomPixelRatio(lastCanvasWidth, lastCanvasHeight,
+      window.devicePixelRatio, coarsePointer.matches) * renderScale);
+    invalidate();
+  }
   // Render only when something visible changes; a quiet room or open computer
   // should not keep submitting millions of triangles to the GPU.
   if (needsRender && !desktop.classList.contains('visible')) {
@@ -1151,11 +1163,16 @@ function animate(now, dt) {
       if (outside) {
         renderer.setScissor(outside.x, outside.y, outside.width, outside.height);
         renderer.setScissorTest(true);
-        camera.layers.set(1);
+        fitWindowCamera(exteriorCamera, camera, outside, lastCanvasWidth, lastCanvasHeight);
+        renderer.setViewport(outside.x, outside.y, outside.width, outside.height);
         if (!exteriorRendered) renderer.shadowMap.needsUpdate = true;
-        renderer.render(scene, camera);
-        exteriorRendered = true;
-        renderer.setScissorTest(false);
+        try {
+          renderer.render(scene, exteriorCamera);
+          exteriorRendered = true;
+        } finally {
+          renderer.setViewport(0, 0, lastCanvasWidth, lastCanvasHeight);
+          renderer.setScissorTest(false);
+        }
       }
       camera.layers.set(0);
       renderer.render(scene, camera);
@@ -1164,8 +1181,7 @@ function animate(now, dt) {
     if (roomReady) renderer.shadowMap.autoUpdate = false;
     needsRender = false;
   }
-  return !!flight || controlsMoving || zoomGoal !== null || pendingPan.lengthSq() > .0000001
-    || cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0 || monitorMoving;
+  return moving;
 }
 
 frameLoop = createFrameLoop(animate);

@@ -3,10 +3,12 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 
 // Hundreds of static architectural details share materials. Draw them together
 // so orbiting the room does not submit a separate GPU call for every brick.
-export function batchStaticRoom(root, isExterior) {
+function* prepareBatches(root, isExterior) {
   root.updateMatrixWorld(true);
   const groups = new Map();
   let before = 0;
+  const center = new THREE.Vector3();
+  const retired = new Set();
   root.traverse((object) => {
     if (!object.isMesh) return;
     before += 1;
@@ -17,8 +19,17 @@ export function batchStaticRoom(root, isExterior) {
     const attributes = Object.entries(geometry.attributes)
       .map(([name, attr]) => `${name}:${attr.itemSize}:${attr.normalized}`)
       .sort().join('|');
+    const exterior = isExterior(object);
+    // Keep far-apart buildings separate so the window frustum can discard
+    // invisible geometry instead of drawing one city-wide material batch.
+    let cell = '';
+    if (exterior) {
+      geometry.computeBoundingBox();
+      geometry.boundingBox.getCenter(center).applyMatrix4(object.matrixWorld);
+      cell = [center.x, center.y, center.z].map(v => Math.floor(v / 20)).join(',');
+    }
     const key = [object.material.uuid, attributes, !!geometry.index,
-      object.castShadow, object.receiveShadow, isExterior(object)].join('/');
+      object.castShadow, object.receiveShadow, object.layers.mask, exterior, cell].join('/');
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(object);
   });
@@ -52,8 +63,36 @@ export function batchStaticRoom(root, isExterior) {
     batch.userData.sourceNames = objects.map((object) => object.name);
     // Geometry is already in world coordinates; root is the identity GLTF scene.
     root.add(batch);
-    objects.forEach((object) => object.removeFromParent());
+    objects.forEach((object) => { retired.add(object.geometry); object.removeFromParent(); });
     removed += objects.length - 1;
+    yield;
   }
+  // A geometry can be shared with an unbatched interactive/transparent mesh.
+  const live = new Set();
+  root.traverse(object => { if (object.isMesh) live.add(object.geometry); });
+  retired.forEach(geometry => { if (!live.has(geometry)) geometry.dispose(); });
   return { before, after: before - removed };
+}
+
+// Synchronous entry point for tooling and geometry regression tests.
+export function batchStaticRoom(root, isExterior) {
+  const batches = prepareBatches(root, isExterior);
+  let step;
+  do { step = batches.next(); } while (!step.done);
+  return step.value;
+}
+
+// Give input and the loading screen a turn between expensive geometry groups.
+export async function prepareStaticRoom(root, isExterior, yieldToPage = () =>
+  new Promise(resolve => setTimeout(resolve, 0))) {
+  const batches = prepareBatches(root, isExterior);
+  let deadline = performance.now() + 12;
+  while (true) {
+    const step = batches.next();
+    if (step.done) return step.value;
+    if (performance.now() >= deadline) {
+      await yieldToPage();
+      deadline = performance.now() + 12;
+    }
+  }
 }

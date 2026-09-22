@@ -20,3 +20,21 @@ test('exterior rendering covers window corners and skips an offscreen window', (
 test('window crossing the eye plane safely falls back to full frame',()=>{
   assert.deepEqual(windowScissor(new Box3(new Vector3(-1,-1,-1),new Vector3(1,1,1)),camera,800,600),{x:0,y:0,width:800,height:600});
 });
+
+import { fitWindowCamera } from '../src/window-render.js';
+test('cropped exterior keeps identical screen coordinates and depth without changing room camera', () => {
+ const source=new PerspectiveCamera(56,1280/720,.05,900);
+ source.position.set(2,3,4); source.lookAt(-3,1,-15); source.updateMatrixWorld(true);
+ const original=source.projectionMatrix.clone();
+ const rect={x:800,y:150,width:300,height:450};
+ const crop=fitWindowCamera(new PerspectiveCamera(),source,rect,1280,720);
+ for(const point of [new Vector3(-3,1,-15),new Vector3(1,4,-20)]) {
+  const full=point.clone().project(source),part=point.clone().project(crop);
+  assert.ok(Math.abs((full.x+1)*640-(rect.x+(part.x+1)*rect.width/2))<1e-9);
+  assert.ok(Math.abs((full.y+1)*360-(rect.y+(part.y+1)*rect.height/2))<1e-9);
+  assert.ok(Math.abs(full.z-part.z)<1e-12);
+ }
+ assert.deepEqual(source.projectionMatrix,original);
+ assert.equal(source.view,null);
+ assert.equal(crop.layers.mask,2);
+});
