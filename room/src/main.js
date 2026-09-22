@@ -1,3 +1,4 @@
+import { bindCameraDial } from './camera-dial.js';
 import './terminal.js';
 import roomUrl from './assets/room.glb?url';
 import { MeshoptDecoder } from 'meshoptimizer/decoder';
@@ -6,7 +7,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { prepareStaticRoom } from './scene-performance.js';
-import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles, followInput } from './room-motion.js';
+import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles } from './room-motion.js';
 
 import { windowScissor, fitWindowCamera } from './window-render.js';
 import { createFrameLoop, roomPixelRatio, createMotionQuality } from './frame-loop.js';
@@ -62,7 +63,9 @@ controls.dampingFactor = 0.065;
 // to lose the room entirely.
 controls.rotateSpeed = 0.18;
 controls.zoomSpeed = 0.38;
-controls.enablePan = true;
+controls.enablePan = false;
+controls.enableRotate = false;
+controls.enableZoom = false;
 controls.panSpeed = 0.23;
 controls.enabled = false;
 controls.screenSpacePanning = true;
@@ -151,9 +154,8 @@ let renderScale = 1;
 let hoverDirty = false;
 let returnPose = null;
 let openingComputer = false;
-const pendingPan = new THREE.Vector3();
 let returnFocus = null;
-let dragMode = 'follow';
+let returnDial = null;
 const cursorGoal = new THREE.Vector2();
 const cursorOffset = new THREE.Vector2();
 const cursorVelocity = new THREE.Vector2();
@@ -166,7 +168,14 @@ const loadingMessage = document.querySelector('#loading-message');
 const progress = document.querySelector('#loading-progress');
 const status = document.querySelector('#room-status');
 const monitorHint = document.querySelector('#monitor-hint');
-const hint = document.querySelector('#gesture-hint');
+const dialInput = document.querySelector('#camera-dial');
+const centerButton = document.querySelector('#center-camera');
+const cameraDial = bindCameraDial(dialInput, document.querySelector('#camera-dial-ball'), value => {
+  if (!roomReady || flight || desktop.classList.contains('visible')) { cameraDial.set(cursorGoal.x); return; }
+  cursorGoal.set(value, 0);
+  setMonitorHover(false);
+  invalidate();
+});
 const help = document.querySelector('#navigation-help');
 const helpButton = document.querySelector('#show-help');
 const roomUI = [...document.querySelectorAll('.room-ui')];
@@ -246,6 +255,16 @@ function closeDesktop() {
   enterDesktopButton.disabled = false;
   const destination = returnPose ?? homePose;
   if (destination) flyTo(destination.position, destination.target, 1100, () => {
+    if (returnDial) {
+      camera.position.copy(returnDial.position);
+      controls.target.copy(returnDial.target);
+      panAnchor = returnDial.target.clone();
+      setOrbitLimits();
+      settleControls();
+      cursorGoal.set(returnDial.value, 0);
+      cursorOffset.copy(cursorGoal);
+      cameraDial.set(returnDial.value);
+    }
     (returnFocus?.isConnected ? returnFocus : enterDesktopButton).focus({ preventScroll: true });
     status.textContent = 'Back in the room.';
   });
@@ -392,12 +411,13 @@ function updateMonitorHit(event) {
 // at the interpolated target avoids the old end-of-flight orientation snap.
 function flyTo(position, target, duration = 1100, onArrive) {
   if (!roomReady) return;
+  dialInput.disabled = true;
+  centerButton.disabled = true;
   settleCursorView();
   if (!flight) settleControls();
   controls.enabled = false;
   enterDesktopButton.disabled = true;
   zoomGoal = null;
-  pendingPan.set(0, 0, 0);
   setMonitorHover(false);
   flight = {
     start: performance.now(), duration: reducedMotion.matches ? 1 : duration,
@@ -421,6 +441,8 @@ function advanceFlight(now) {
     controls.enabled = !desktop.classList.contains('visible');
     enterDesktopButton.disabled = false;
     active.onArrive?.();
+    dialInput.disabled = desktop.classList.contains('visible');
+    centerButton.disabled = dialInput.disabled;
   }
 }
 
@@ -444,6 +466,7 @@ function rememberHome() {
 function goHome(duration = 1150) {
   if (!homePose || desktop.classList.contains('visible')) return;
   openingComputer = false;
+  cameraDial.set(0);
   enterDesktopButton.disabled = false;
   enterDesktopButton.textContent = 'Open computer ↗';
   flyTo(homePose.position, homePose.target, duration, () => {
@@ -454,6 +477,7 @@ function goHome(duration = 1150) {
 function focusMonitor() {
   if (!roomReady || flight || !monitorScreen || enterDesktopButton.disabled
     || desktop.classList.contains('visible')) return;
+  returnDial = { position: camera.position.clone(), target: controls.target.clone(), value: cursorOffset.x };
   settleCursorView();
   if (!flight) settleControls();
   returnPose = { position: camera.position.clone(), target: controls.target.clone() };
@@ -874,7 +898,8 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
       progress.value = 100;
       loading.classList.add('loaded');
       document.body.classList.add('room-ready');
-      setDragMode(dragMode);
+      dialInput.disabled = false;
+      centerButton.disabled = false;
       status.textContent = 'The room is ready. Explore the room, or open the computer.';
       if (!document.hidden) frameLoop?.resume();
       invalidate();
@@ -889,28 +914,6 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
   },
   showRoomError,
 );
-
-function setDragMode(mode) {
-  if (mode === 'follow' && (coarsePointer.matches || reducedMotion.matches)) mode = 'look';
-  if (roomReady && dragMode === 'follow' && mode !== 'follow') {
-    settleCursorView();
-    settleControls();
-  }
-  dragMode = mode;
-  controls.enableRotate = mode !== 'follow';
-  controls.enablePan = mode !== 'follow';
-  controls.mouseButtons.LEFT = mode === 'follow' ? null : mode === 'pan' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
-  controls.touches.ONE = mode === 'pan' ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
-  document.querySelector('#mode-follow').setAttribute('aria-pressed', String(mode === 'follow'));
-  document.querySelector('#mode-follow').hidden = coarsePointer.matches;
-  document.querySelector('#mode-follow').disabled = !roomReady || reducedMotion.matches;
-  document.body.classList.toggle('cursor-follow', mode === 'follow');
-  hint.textContent = mode === 'follow' ? 'Move toward the edges to explore the room · Scroll to zoom'
-    : `${mode === 'pan' ? 'Drag to pan' : 'Drag to look'} · ${coarsePointer.matches ? 'Pinch' : 'Scroll'} to zoom`;
-  status.textContent = mode === 'follow' ? 'The view gently follows your cursor.'
-    : mode === 'pan' ? 'Pan mode. Drag to move across the room.' : 'Look mode. Drag to look around.';
-  invalidate();
-}
 
 function queueZoom(delta, deltaMode = 0) {
   if (!roomReady || !controls.enabled || flight) return;
@@ -929,7 +932,6 @@ canvas.addEventListener('pointerdown', (event) => {
     dragOrigin = { x: event.clientX, y: event.clientY };
     pointerDownHit = event.button === 0 && updateMonitorHit(event);
   }
-  pendingPan.set(0, 0, 0);
   activePointers.add(event.pointerId);
   if (activePointers.size > 1) multiTouchGesture = true;
   zoomGoal = null;
@@ -957,29 +959,13 @@ canvas.addEventListener('click', (event) => {
 canvas.addEventListener('wheel', (event) => {
   if (!controls.enabled || flight) return;
   event.preventDefault();
-  // Support precise trackpad panning without an extra toolbar mode.
-  if (event.shiftKey) {
-    event.stopImmediatePropagation();
-    const units = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1;
-    panView(-Math.max(-80, Math.min(80, (event.deltaX || event.deltaY) * units)) * 0.002, 0);
-    return;
-  }
   event.stopImmediatePropagation();
   queueZoom(event.deltaY, event.deltaMode);
 }, { capture: true, passive: false });
 
-function panView(x, y) {
-  if (!roomReady || !controls.enabled || flight) return;
-  if (dragMode === 'follow') setDragMode('pan');
-  const movement = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0).multiplyScalar(x)
-    .addScaledVector(new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1), y);
-  pendingPan.add(movement);
-  invalidate();
-}
-
 enterDesktopButton.addEventListener('click', focusMonitor);
 document.querySelector('#close-computer').addEventListener('click', closeDesktop);
-document.querySelector('#mode-follow').addEventListener('click', () => setDragMode('follow'));
+centerButton.addEventListener('click', () => goHome());
 document.querySelector('#zoom-in').addEventListener('click', () => queueZoom(-120));
 document.querySelector('#zoom-out').addEventListener('click', () => queueZoom(120));
 document.querySelector('#reset-view').addEventListener('click', () => goHome());
@@ -988,8 +974,7 @@ helpButton.addEventListener('click', () => {
   help.hidden = !help.hidden;
   helpButton.setAttribute('aria-expanded', String(!help.hidden));
 });
-coarsePointer.addEventListener('change', () => setDragMode(dragMode));
-setDragMode('follow');
+
 
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
@@ -1015,8 +1000,8 @@ window.addEventListener('keydown', (event) => {
   if (key === '+' || key === '=') { queueZoom(-100); event.preventDefault(); }
   if (key === '-') { queueZoom(100); event.preventDefault(); }
   if (event.target === canvas) {
-    const pan = { ArrowLeft: [-0.055, 0], ArrowRight: [0.055, 0], ArrowUp: [0, 0.055], ArrowDown: [0, -0.055] }[event.key];
-    if (pan) { panView(...pan); event.preventDefault(); }
+    const turn = { ArrowLeft: -.05, ArrowRight: .05 }[event.key];
+    if (turn) { cursorGoal.x = THREE.MathUtils.clamp(cursorGoal.x + turn, -1, 1); cameraDial.set(cursorGoal.x); invalidate(); event.preventDefault(); }
     if (event.key === 'Enter') { focusMonitor(); event.preventDefault(); }
   }
 });
@@ -1024,8 +1009,7 @@ window.addEventListener('keydown', (event) => {
 reducedMotion.addEventListener('change', () => {
   controls.enableDamping = !reducedMotion.matches;
   if (reducedMotion.matches && flight) flight.duration = 1;
-  if (reducedMotion.matches && dragMode === 'follow') setDragMode('look');
-  else setDragMode(dragMode);
+
   invalidate();
 });
 document.addEventListener('visibilitychange', () => {
@@ -1059,14 +1043,6 @@ desktop.addEventListener('click', event => {
 function animate(now, dt) {
   if (document.hidden || desktop.classList.contains('visible')) return false;
   let controlsMoving = false;
-  if (hoverDirty && lastHoverPointer && dragMode === 'follow' && controls.enabled
-    && !reducedMotion.matches && lastHoverPointer.pointerType !== 'touch') {
-    const rect = canvas.getBoundingClientRect();
-    cursorGoal.set(
-      followInput((lastHoverPointer.clientX - rect.left) / rect.width * 2 - 1),
-      followInput(1 - (lastHoverPointer.clientY - rect.top) / rect.height * 2),
-    );
-  }
   if (flight) advanceFlight(now);
   if (!flight && roomReady && !desktop.classList.contains('visible')) {
     if (zoomGoal !== null) {
@@ -1076,13 +1052,6 @@ function animate(now, dt) {
       const arrived = Math.abs(distance - zoomGoal) < 0.002;
       camera.position.copy(controls.target).add(offset.setLength(arrived ? zoomGoal : distance));
       if (arrived) zoomGoal = null;
-      invalidate();
-    }
-    if (pendingPan.lengthSq() > 0.0000001) {
-      const step = pendingPan.clone().multiplyScalar(reducedMotion.matches ? 1 : responseAt(10, dt));
-      camera.position.add(step);
-      controls.target.add(step);
-      pendingPan.sub(step);
       invalidate();
     }
     controls.dampingFactor = responseAt(7, dt);
@@ -1144,7 +1113,7 @@ function animate(now, dt) {
     } else material.opacity = wanted;
     monitorOutline.visible = material.opacity > .003;
   }
-  const moving = !!flight || controlsMoving || zoomGoal !== null || pendingPan.lengthSq() > .0000001
+  const moving = !!flight || controlsMoving || zoomGoal !== null
     || cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0 || monitorMoving;
   const nextScale = motionQuality.sample(dt, moving);
   if (Math.abs(nextScale - renderScale) > .001) {

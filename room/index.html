@@ -33,22 +33,28 @@
       <div class="navigation-wrap room-ui">
         <div id="navigation-help" class="navigation-help" hidden>
           <strong>Make yourself at home</strong>
-          <p>Move your cursor toward the edges to look across the room, or up and down to explore the ceiling and floor. The view stays where you leave it; use Reset to return to centre. On touchscreens, drag to look around.</p>
-          <p>Scroll or pinch to zoom. On a trackpad, hold Shift to pan.</p>
-          <p><kbd>←</kbd> <kbd>↑</kbd> <kbd>↓</kbd> <kbd>→</kbd> pan · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>R</kbd> reset</p>
+          <p>Drag the ball along the arc to look left or right. Release it to settle at that angle. Tap Desk in the center to return to your original view. Works with a mouse or touch.</p>
+          <p>Scroll or use the − and + buttons to zoom.</p>
+          <p>Focus the arc and use <kbd>←</kbd> <kbd>→</kbd> to look · <kbd>Home</kbd> to center · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>R</kbd> reset</p>
           <p>Click the monitor to open the computer. <kbd>Esc</kbd> brings you back.</p>
         </div>
+        <div class="camera-dial">
+          <svg viewBox="0 0 192 106" aria-hidden="true">
+            <path class="dial-fill" d="M22 84 A74 74 0 0 1 170 84 Z" />
+            <path class="dial-track" d="M22 84 A74 74 0 0 1 170 84" />
+            <path class="dial-center-tick" d="M96 7 V17" />
+            <circle id="camera-dial-ball" cx="96" cy="10" r="9" />
+          </svg>
+          <input id="camera-dial" type="range" min="-100" max="100" step="1" value="0" aria-label="Look around the room" aria-describedby="gesture-hint" disabled>
+          <button id="center-camera" type="button" aria-label="Return to desk" title="Return to desk" disabled><span aria-hidden="true">⌂</span><span>Desk</span></button>
+        </div>
         <nav class="room-controls" aria-label="Room navigation">
-          <div class="mode-controls" role="group" aria-label="Cursor tracking">
-            <button id="mode-follow" type="button" aria-pressed="true" disabled>Follow</button>
-          </div>
-          <span class="control-divider" aria-hidden="true"></span>
           <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)" disabled>−</button>
           <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)" disabled>+</button>
           <button id="reset-view" type="button" title="Return to the original view (R)" disabled>Reset</button>
           <button id="show-help" type="button" aria-label="Navigation help" aria-expanded="false" aria-controls="navigation-help">?</button>
         </nav>
-        <p class="gesture-hint" id="gesture-hint">Move your cursor to look around · Scroll to zoom</p>
+        <p class="gesture-hint" id="gesture-hint">Drag the ball to look around · Tap Desk to center</p>
       </div>
       <div id="monitor-hint" class="monitor-hint" aria-hidden="true">Open computer <span>↗</span></div>
       <p id="room-status" class="sr-only" role="status" aria-live="polite"></p>
