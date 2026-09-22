@@ -177,26 +177,43 @@ def apply_seating():
    c=tip+side*offset-Vector((0,0,.029));cylinder('ChairCasterWheel',c-side*.012,c+side*.012,.033,rubber,24)
    cylinder('ChairCasterHub',c-side*.0125,c+side*.0125,.014,silver,16)
  cylinder('ChairHeightLever',(cx+.12,cy,.477),(cx+.30,cy,.477),.009,graphite)
- # Rectangular midnight-sage woven rug with a warm bound edge and quiet stripes.
- rug=mat('Rug midnight sage',(.11,.16,.17),.99)
- border=mat('Rug oatmeal border',(.36,.34,.28),.99)
- stripe=mat('Rug muted weave',(.20,.25,.24),.99)
- # Match both outer desk edges, not the off-centre chair position.
- bpy.context.view_layer.update()
- desk=bpy.data.objects['DeskTop']
- xs=[(desk.matrix_world@Vector(v)).x for v in desk.bound_box]
- rugx=(min(xs)+max(xs))/2;half=(max(xs)-min(xs))/2
- base=box('ChairFuzzyMat',(rugx,1.14,.022),(half,.92,.012),border,.014)
- box(P+'RugField',(rugx,1.14,.036),(half-.064,.856,.004),rug,.008)
- for side in [-1,1]:
-  for offset,width in [(0,.006),(.018,.002)]:
-   box(P+'RugBorderStripe',(rugx,1.14+side*(.824-offset),.041),(half-.089,width,.001),stripe,.001)
-   box(P+'RugBorderStripe',(rugx+side*(half-.096-offset),1.14,.041),(width,.814,.001),stripe,.001)
- # Restrained woven cross-lines are flat and do not add per-frame work.
- for i in range(45):
-  box(P+'RugWeft',(rugx,1.14-.79+i*.036,.041),(half-.12,.0007,.0005),stripe,.0003)
+ apply_rug()
  inside=bpy.data.collections.get('Architecture Interior Receivers')
  if inside:
   for ob in bpy.data.objects:
    if ob.name.startswith(('Chair',P+'Rug')) and ob.name not in inside.objects:inside.objects.link(ob)
+ bpy.context.view_layer.update()
+
+def apply_rug():
+ """Plain, low-pile black rug; the desk determines its exact width."""
+ for o in list(bpy.data.objects):
+  if o.name == 'ChairFuzzyMat' or o.name.startswith(P+'Rug'):
+   bpy.data.objects.remove(o,do_unlink=True)
+ rug=mat('Plain black rug',(.012,.012,.013),.98)
+ bsdf=rug.node_tree.nodes.get('Principled BSDF')
+ bsdf.inputs['Specular IOR Level'].default_value=.12
+ bsdf.inputs['Sheen Weight'].default_value=.12
+ bsdf.inputs['Sheen Roughness'].default_value=.9
+ # A tiny normal texture provides fabric grain without stripes or a printed pattern.
+ image=bpy.data.images.get('Plain black rug pile')
+ if image is None:
+  size=512;image=bpy.data.images.new('Plain black rug pile',width=size,height=size)
+  image.colorspace_settings.name='Non-Color'
+  rng=random.Random(91);heights=[rng.random() for _ in range(size*size)];pixels=[]
+  for y in range(size):
+   for x in range(size):
+    dx=(heights[y*size+(x+1)%size]-heights[y*size+(x-1)%size])*.28
+    dy=(heights[((y+1)%size)*size+x]-heights[((y-1)%size)*size+x])*.28
+    n=Vector((-dx,-dy,1)).normalized();pixels.extend((n.x*.5+.5,n.y*.5+.5,n.z*.5+.5,1))
+  image.pixels.foreach_set(pixels);image.pack()
+ nodes=rug.node_tree.nodes;links=rug.node_tree.links
+ tex=nodes.get('Pile normal texture') or nodes.new('ShaderNodeTexImage');tex.name='Pile normal texture';tex.image=image
+ normal=nodes.get('Pile normal') or nodes.new('ShaderNodeNormalMap');normal.name='Pile normal';normal.inputs['Strength'].default_value=.3
+ links.new(tex.outputs['Color'],normal.inputs['Color']);links.new(normal.outputs['Normal'],bsdf.inputs['Normal'])
+ bpy.context.view_layer.update()
+ desk=bpy.data.objects['DeskTop'];xs=[(desk.matrix_world@Vector(v)).x for v in desk.bound_box]
+ rugx=(min(xs)+max(xs))/2;half=(max(xs)-min(xs))/2
+ box('ChairFuzzyMat',(rugx,1.14,.022),(half,.92,.012),rug,.010)
+ inside=bpy.data.collections.get('Architecture Interior Receivers')
+ if inside:inside.objects.link(bpy.data.objects['ChairFuzzyMat'])
  bpy.context.view_layer.update()
