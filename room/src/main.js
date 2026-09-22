@@ -1,3 +1,4 @@
+import './terminal.js';
 import roomUrl from './assets/room.glb?url';
 import { MeshoptDecoder } from 'meshoptimizer/decoder';
 import * as THREE from 'three';
@@ -997,7 +998,7 @@ window.addEventListener('keydown', (event) => {
   }
   if (desktop.classList.contains('visible')) {
     if (event.key === 'Tab') {
-      const items = [...desktop.querySelectorAll('button, a[href], summary, [tabindex="0"]')].filter((el) => el.getClientRects().length && !el.disabled);
+      const items = [...desktop.querySelectorAll('button, input, a[href], summary, [tabindex="0"]')].filter((el) => el.getClientRects().length && !el.disabled);
       const first = items[0], last = items.at(-1);
       if (!desktop.contains(document.activeElement)) { (event.shiftKey ? last : first).focus(); event.preventDefault(); }
       else if (event.shiftKey && document.activeElement === first) { last.focus(); event.preventDefault(); }
