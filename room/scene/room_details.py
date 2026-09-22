@@ -213,7 +213,10 @@ def apply_rug():
  bpy.context.view_layer.update()
  desk=bpy.data.objects['DeskTop'];xs=[(desk.matrix_world@Vector(v)).x for v in desk.bound_box]
  rugx=(min(xs)+max(xs))/2;half=(max(xs)-min(xs))/2
- box('ChairFuzzyMat',(rugx,1.14,.022),(half,.92,.012),rug,.010)
+ # Keep a small floor gap behind the desk supports.
+ supports=[o for o in bpy.data.objects if o.name=='DeskTop' or o.name.startswith('DeskLeg')]
+ deskfront=max((o.matrix_world@Vector(v)).y for o in supports for v in o.bound_box)
+ box('ChairFuzzyMat',(rugx,deskfront+.05+.92,.022),(half,.92,.012),rug,.010)
  inside=bpy.data.collections.get('Architecture Interior Receivers')
  if inside:inside.objects.link(bpy.data.objects['ChairFuzzyMat'])
  bpy.context.view_layer.update()
