@@ -1,6 +1,6 @@
 export function dialPoint(value) {
   const x = Math.max(-1, Math.min(1, value));
-  return { x: 96 + 74 * x, y: 84 - 74 * Math.sqrt(1 - x * x) };
+  return { x: 120 + 98 * x, y: 18 + 34 * x * x };
 }
 
 export function bindCameraDial(input, ball, onChange) {

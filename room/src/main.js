@@ -968,7 +968,6 @@ document.querySelector('#close-computer').addEventListener('click', closeDesktop
 centerButton.addEventListener('click', () => goHome());
 document.querySelector('#zoom-in').addEventListener('click', () => queueZoom(-120));
 document.querySelector('#zoom-out').addEventListener('click', () => queueZoom(120));
-document.querySelector('#reset-view').addEventListener('click', () => goHome());
 document.querySelector('#retry-room').addEventListener('click', () => location.reload());
 helpButton.addEventListener('click', () => {
   help.hidden = !help.hidden;

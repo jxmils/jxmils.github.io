@@ -2,15 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dialPoint, bindCameraDial } from '../src/camera-dial.js';
 
-test('dial stays on its semicircle and clamps both endpoints', () => {
+test('dial stays on its shallow arc and clamps both endpoints', () => {
  for(let i=-100;i<=100;i++) {
   const p=dialPoint(i/100);
-  assert.ok(Math.abs((p.x-96)**2+(p.y-84)**2-74**2)<1e-8);
-  assert.ok(p.y<=84);
+  assert.ok(Math.abs(p.y - (18 + 34 * ((p.x-120)/98)**2))<1e-8);
+  assert.ok(p.y<=52);
  }
- assert.deepEqual(dialPoint(-9),{x:22,y:84});
- assert.deepEqual(dialPoint(9),{x:170,y:84});
- assert.deepEqual(dialPoint(0),{x:96,y:10});
+ assert.deepEqual(dialPoint(-9),{x:22,y:52});
+ assert.deepEqual(dialPoint(9),{x:218,y:52});
+ assert.deepEqual(dialPoint(0),{x:120,y:18});
 });
 
 test('drag input, arrow keys and Home share bounded state and accessible values', () => {
