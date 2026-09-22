@@ -40,10 +40,25 @@
         </div>
         <div class="camera-dial">
           <svg viewBox="0 0 192 106" aria-hidden="true">
-            <path class="dial-fill" d="M22 84 A74 74 0 0 1 170 84 Z" />
+            <defs>
+              <linearGradient id="dial-pearl" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#dce7e8" />
+                <stop offset=".38" stop-color="#f5f0e7" />
+                <stop offset=".7" stop-color="#e5dfe9" />
+                <stop offset="1" stop-color="#c3cdd7" />
+              </linearGradient>
+              <radialGradient id="dial-ball" cx=".32" cy=".25" r=".8">
+                <stop offset="0" stop-color="#556469" />
+                <stop offset=".6" stop-color="#25383e" />
+                <stop offset="1" stop-color="#16272c" />
+              </radialGradient>
+            </defs>
+            <path class="dial-shadow" d="M22 87 A74 74 0 0 1 170 87" />
+            <path class="dial-rim" d="M22 84 A74 74 0 0 1 170 84" />
+            <path class="dial-band" d="M22 84 A74 74 0 0 1 170 84" />
             <path class="dial-track" d="M22 84 A74 74 0 0 1 170 84" />
-            <path class="dial-center-tick" d="M96 7 V17" />
-            <circle id="camera-dial-ball" cx="96" cy="10" r="9" />
+            <path class="dial-center-tick" d="M96 1 V5" />
+            <circle id="camera-dial-ball" cx="96" cy="10" r="7" />
           </svg>
           <input id="camera-dial" type="range" min="-100" max="100" step="1" value="0" aria-label="Look around the room" aria-describedby="gesture-hint" disabled>
           <button id="center-camera" type="button" aria-label="Return to desk" title="Return to desk" disabled><span aria-hidden="true">⌂</span><span>Desk</span></button>

@@ -528,16 +528,19 @@ body.monitor-hover #room-canvas { cursor: pointer; }
 /* A deliberate seated view, controlled by a small camera arc. */
 .camera-dial { position: relative; width: 192px; height: 106px; margin-bottom: -7px; }
 .camera-dial svg { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.dial-fill { fill: rgb(18 26 31 / .80); }
-.dial-track { fill: none; stroke: #ddc89f80; stroke-width: 2; }
-.dial-center-tick { stroke: #f4e3c1; stroke-width: 2; }
-#camera-dial-ball { fill: #e8d2a9; stroke: #fff0d3; stroke-width: 2; filter: drop-shadow(0 2px 5px #0008); }
+.camera-dial path { fill: none; stroke-linecap: round; }
+.dial-shadow { stroke: #a899b4; stroke-width: 20; opacity: .55; filter: drop-shadow(0 3px 5px #0006); }
+.dial-rim { stroke: #f8f5ef; stroke-width: 20; }
+.dial-band { stroke: url(#dial-pearl); stroke-width: 17; }
+.dial-track { stroke: #a3a9b34d; stroke-width: 1; }
+.dial-center-tick { stroke: #81848d; stroke-width: 1.5; }
+#camera-dial-ball { fill: url(#dial-ball); stroke: #fff7e8; stroke-width: 1.5; filter: drop-shadow(0 2px 2px #0006); }
 #camera-dial { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; touch-action: none; appearance: none; background: transparent; }
 #camera-dial::-webkit-slider-thumb { appearance: none; width: 44px; height: 44px; background: transparent; }
 #camera-dial::-moz-range-thumb { width: 44px; height: 44px; border: 0; background: transparent; }
-.camera-dial:has(input:focus-visible) .dial-track { stroke: #fff0d3; stroke-width: 3; }
+.camera-dial:has(input:focus-visible) .dial-rim { stroke: #e7c88e; stroke-width: 24; }
 .camera-dial:has(input:disabled) { opacity: .45; }
-#center-camera { position: absolute; z-index: 1; bottom: 12px; left: 74px; width: 44px; height: 44px; display: grid; align-content: center; justify-items: center; gap: 1px; border: 0; border-radius: 50%; color: #e8d2a9; background: #ffffff08; cursor: pointer; font-size: 10px; }
+#center-camera { position: absolute; z-index: 1; bottom: 12px; left: 74px; width: 44px; height: 44px; display: grid; align-content: center; justify-items: center; gap: 1px; border: 0; border-radius: 50%; color: #eee6d8; background: #152127ba; cursor: pointer; font-size: 10px; }
 #center-camera span:first-child { font-size: 20px; line-height: 20px; }
 #center-camera:hover { background: #ffffff18; }
 #room-canvas { cursor: default; }
