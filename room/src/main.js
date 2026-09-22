@@ -897,9 +897,7 @@ function setDragMode(mode) {
   controls.enablePan = mode !== 'follow';
   controls.mouseButtons.LEFT = mode === 'follow' ? null : mode === 'pan' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
   controls.touches.ONE = mode === 'pan' ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
-  for (const name of ['follow', 'look', 'pan']) {
-    document.querySelector(`#mode-${name}`).setAttribute('aria-pressed', String(mode === name));
-  }
+  document.querySelector('#mode-follow').setAttribute('aria-pressed', String(mode === 'follow'));
   document.querySelector('#mode-follow').hidden = coarsePointer.matches;
   document.querySelector('#mode-follow').disabled = !roomReady || reducedMotion.matches;
   document.body.classList.toggle('cursor-follow', mode === 'follow');
@@ -955,7 +953,7 @@ canvas.addEventListener('click', (event) => {
 canvas.addEventListener('wheel', (event) => {
   if (!controls.enabled || flight) return;
   event.preventDefault();
-  // Keep Shift + trackpad scrolling consistent with the visible Pan tool.
+  // Support precise trackpad panning without an extra toolbar mode.
   if (event.shiftKey) {
     event.stopImmediatePropagation();
     const units = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? canvas.clientHeight : 1;
@@ -978,8 +976,6 @@ function panView(x, y) {
 enterDesktopButton.addEventListener('click', focusMonitor);
 document.querySelector('#close-computer').addEventListener('click', closeDesktop);
 document.querySelector('#mode-follow').addEventListener('click', () => setDragMode('follow'));
-document.querySelector('#mode-look').addEventListener('click', () => setDragMode('look'));
-document.querySelector('#mode-pan').addEventListener('click', () => setDragMode('pan'));
 document.querySelector('#zoom-in').addEventListener('click', () => queueZoom(-120));
 document.querySelector('#zoom-out').addEventListener('click', () => queueZoom(120));
 document.querySelector('#reset-view').addEventListener('click', () => goHome());
