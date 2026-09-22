@@ -1,11 +1,11 @@
 {
-  "sourceCommit": "8d8f90938206665bd77f6191e56026133d1f268a",
-  "previousPagesCommit": "60f562b92e3fd18f5fe1ea2bd08be031af39c3b7",
+  "sourceCommit": "487f345c4a53f8bb5028c94fa29b99a87ea229b3",
+  "previousPagesCommit": "2302eacd99ca08ae1cecaed953a957179e2dbbeb",
   "sourceDirectory": "room",
-  "builtAt": "2026-09-22T01:34:52.167433+00:00",
+  "builtAt": "2026-09-22T02:01:04.630491+00:00",
   "files": {
     "profile.html": "2ba7d7f68c8e939c9ccd763d6c9d802eaadea953f67add704866b1a958fb7886",
-    "index.html": "d281b3124664ac5e75e80bc302bdd71620a740264893f56c8db118a3378f0cac",
+    "index.html": "37bb96b120cf5e41951f8f13e815d2f414fe16c3f65d101c0f0d05eac4eab364",
     "assets/main-B3KJN93x.js": "f36a7add82544999e54f326e91008bec31781cf972fbb3679a98271f060272fb",
     "assets/room-DZV0F-tT.glb": "67e9446159ef67434106b0a04845394c191416270edea99b36323c5c0acaad11",
     "assets/jason-portrait-CEbsmSKs.jpg": "76c2d7ccd2d37e0aac39f95ea7e29e9f7bc11aa4c39db247f066509890167947",
