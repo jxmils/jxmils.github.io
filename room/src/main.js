@@ -5,7 +5,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { batchStaticRoom } from './scene-performance.js';
-import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles } from './room-motion.js';
+import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles, followInput } from './room-motion.js';
+
+import { windowScissor } from './window-render.js';
+import { createFrameLoop, roomPixelRatio } from './frame-loop.js';
 
 const canvas = document.querySelector('#room-canvas');
 const desktop = document.querySelector('#desktop');
@@ -32,7 +35,7 @@ const LOOK = {
 };
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.matchMedia('(pointer: coarse)').matches ? 1.5 : 2));
+renderer.setPixelRatio(roomPixelRatio(canvas.clientWidth, canvas.clientHeight, window.devicePixelRatio, window.matchMedia('(pointer: coarse)').matches));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = LOOK.exposure;
@@ -131,11 +134,16 @@ const pointer = new THREE.Vector2();
 let monitorScreen = null;
 let monitorBaseMaterial = null;
 let roomModel = null;
+let windowBounds = null;
+let exteriorRendered = false;
 let horizontalFov = null;
 let homePose = null;
+let panAnchor = null;
 let flight = null;
 let roomReady = false;
 let needsRender = true;
+let frameLoop = null;
+let hoverDirty = false;
 let returnPose = null;
 let openingComputer = false;
 const pendingPan = new THREE.Vector3();
@@ -158,13 +166,12 @@ const help = document.querySelector('#navigation-help');
 const helpButton = document.querySelector('#show-help');
 const roomUI = [...document.querySelectorAll('.room-ui')];
 const coarsePointer = window.matchMedia('(pointer: coarse)');
-function invalidate() { needsRender = true; }
+function invalidate() { needsRender = true; frameLoop?.wake(); }
 controls.addEventListener('change', invalidate);
 let isHoveringMonitor = false;
 let zoomGoal = null;
 let dragOrigin = null;
 let pointerTravel = 0;
-let lastFrameTime = performance.now();
 let lastCanvasWidth = 0;
 let lastCanvasHeight = 0;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -175,6 +182,7 @@ function setSize() {
   if (clientWidth === lastCanvasWidth && clientHeight === lastCanvasHeight) return;
   lastCanvasWidth = clientWidth;
   lastCanvasHeight = clientHeight;
+  renderer.setPixelRatio(roomPixelRatio(clientWidth, clientHeight, window.devicePixelRatio, coarsePointer.matches));
   renderer.setSize(clientWidth, clientHeight, false);
   invalidate();
   camera.aspect = clientWidth / clientHeight;
@@ -199,6 +207,7 @@ function setRoomUI(active) {
 }
 
 function openDesktop() {
+  frameLoop?.pause();
   openingComputer = false;
   controls.enabled = false;
   zoomGoal = null;
@@ -222,6 +231,7 @@ desktop.addEventListener('transitionend', (event) => {
 });
 
 function closeDesktop() {
+  frameLoop?.resume();
   openingComputer = false;
   desktop.inert = true;
   desktop.classList.remove('visible');
@@ -342,6 +352,8 @@ function settleCursorView() {
     camera.position.copy(view.position);
     controls.target.copy(view.target);
     camera.lookAt(view.target);
+    panAnchor = controls.target.clone();
+    setOrbitLimits();
   }
   cursorGoal.set(0, 0);
   cursorOffset.set(0, 0);
@@ -399,18 +411,25 @@ function advanceFlight(now) {
   invalidate();
   if (eased >= 1) {
     flight = null;
+    panAnchor = controls.target.clone();
+    setOrbitLimits();
     controls.enabled = !desktop.classList.contains('visible');
     enterDesktopButton.disabled = false;
     active.onArrive?.();
   }
 }
 
-function rememberHome() {
+function setOrbitLimits() {
   const spherical = new THREE.Spherical().setFromVector3(camera.position.clone().sub(controls.target));
   controls.minAzimuthAngle = spherical.theta - 0.75;
   controls.maxAzimuthAngle = spherical.theta + 0.75;
   controls.minPolarAngle = Math.max(0.4, spherical.phi - 0.3);
   controls.maxPolarAngle = Math.min(1.62, spherical.phi + 0.2);
+}
+
+function rememberHome() {
+  setOrbitLimits();
+  panAnchor = controls.target.clone();
   homePose = {
     position: camera.position.clone(),
     target: controls.target.clone(),
@@ -430,6 +449,7 @@ function goHome(duration = 1150) {
 function focusMonitor() {
   if (!roomReady || flight || !monitorScreen || enterDesktopButton.disabled
     || desktop.classList.contains('visible')) return;
+  settleCursorView();
   if (!flight) settleControls();
   returnPose = { position: camera.position.clone(), target: controls.target.clone() };
   returnFocus = document.activeElement;
@@ -703,113 +723,146 @@ function addDeskPracticals(root) {
   scene.add(glow);
 }
 
+// Decode compressed geometry off the interaction thread where workers are available.
+try { MeshoptDecoder.useWorkers(Math.min(2, Math.max(1, (navigator.hardwareConcurrency || 2) - 1))); }
+catch { /* The decoder retains its synchronous fallback when workers are unavailable. */ }
+
+function showRoomError(err) {
+  console.error('GLB load/callback failed:', err);
+  frameLoop?.pause();
+  canvas.setAttribute('aria-busy', 'false');
+  loadingMessage.textContent = 'The room couldn’t load. Try again, or read my profile below.';
+  progress.hidden = true;
+  document.querySelector('#retry-room').hidden = false;
+}
+
 new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
   roomUrl,
-  (gltf) => {
-    roomModel = gltf.scene;
-    roomModel.traverse((object) => {
-      if (object.isLight) {
-        object.visible = false;
-      }
-      if (object.isMesh) {
-        // Thin window glazing must composite the already-rendered exterior;
-        // screen-space transmission cannot sample a different render layer.
-        if (object.name === 'WindowGlass') {
-          object.material = new THREE.MeshBasicMaterial({
-            color: 0xbfd3e1, transparent: true, opacity: 0.025,
-            depthWrite: false, side: THREE.DoubleSide,
-          });
-          object.castShadow = false;
+  async (gltf) => {
+    try {
+      frameLoop?.pause();
+      MeshoptDecoder.useWorkers(0);
+      roomModel = gltf.scene;
+      roomModel.traverse((object) => {
+        if (object.isLight) {
+          object.visible = false;
         }
-        const exterior = isExterior(object);
-        object.castShadow = !object.name.startsWith('ExteriorSky')
-          && object.name !== 'WindowGlass' && object.name !== 'OakTreeArt';
-        object.receiveShadow = !object.name.startsWith('ExteriorSky');
-        if (exterior) {
-          object.layers.set(1);
-          // Keep the lawn nocturnal beneath the broad moonlight. Clone only
-          // these outdoor materials so indoor plants retain their finish.
-          if (object.name.startsWith('ExteriorGround') || object.name.startsWith('ExteriorGrass')) {
-            const shadeLawn = (material) => {
-              const copy = material.clone();
-              copy.color.multiplyScalar(0.38);
-              return copy;
-            };
-            object.material = Array.isArray(object.material)
-              ? object.material.map(shadeLawn) : shadeLawn(object.material);
+        if (object.isMesh) {
+          // Thin window glazing must composite the already-rendered exterior;
+          // screen-space transmission cannot sample a different render layer.
+          if (object.name === 'WindowGlass') {
+            object.material = new THREE.MeshBasicMaterial({
+              color: 0xbfd3e1, transparent: true, opacity: 0.025,
+              depthWrite: false, side: THREE.DoubleSide,
+            });
+            object.castShadow = false;
           }
-          const materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach((material) => {
-            material.envMapIntensity = 0.3;
-            // Blender's procedural stone bump is not a tangent-space normal
-            // texture; retain the CAD normals for the architectural lighting.
-            if (/^RadcamStone/.test(material.name)) material.normalMap = null;
-            if (material.name === 'ExteriorSkyMat') material.emissiveIntensity = 3;
-          });
+          const exterior = isExterior(object);
+          object.castShadow = !object.name.startsWith('ExteriorSky')
+            && object.name !== 'WindowGlass' && object.name !== 'OakTreeArt';
+          object.receiveShadow = !object.name.startsWith('ExteriorSky');
+          if (exterior) {
+            object.layers.set(1);
+            // Keep the lawn nocturnal beneath the broad moonlight. Clone only
+            // these outdoor materials so indoor plants retain their finish.
+            if (object.name.startsWith('ExteriorGround') || object.name.startsWith('ExteriorGrass')) {
+              const shadeLawn = (material) => {
+                const copy = material.clone();
+                copy.color.multiplyScalar(0.38);
+                return copy;
+              };
+              object.material = Array.isArray(object.material)
+                ? object.material.map(shadeLawn) : shadeLawn(object.material);
+            }
+            const materials = Array.isArray(object.material) ? object.material : [object.material];
+            materials.forEach((material) => {
+              material.envMapIntensity = 0.3;
+              // Blender's procedural stone bump is not a tangent-space normal
+              // texture; retain the CAD normals for the architectural lighting.
+              if (/^RadcamStone/.test(material.name)) material.normalMap = null;
+              if (material.name === 'ExteriorSkyMat') material.emissiveIntensity = 3;
+            });
+          }
+        }
+      });
+      scene.add(roomModel);
+      const glazing = roomModel.getObjectByName('WindowGlass');
+      if (glazing) windowBounds = new THREE.Box3().setFromObject(glazing);
+      useExportedCamera(roomModel);
+      camera.layers.enable(1);
+      rememberHome();
+      monitorScreen = findMonitorScreen(roomModel);
+      if (monitorScreen?.material) {
+        monitorBaseMaterial = monitorScreen.material;
+        monitorScreen.material = monitorBaseMaterial.clone();
+        // The screen is the focal point, so it stays lit rather than only
+        // glowing on hover.
+        monitorScreen.material.emissiveIntensity = LOOK.screen.emissive;
+        monitorScreen.castShadow = false;
+      }
+
+      const roomBounds = interiorBounds(roomModel);
+      const roomCenter = roomBounds.getCenter(new THREE.Vector3());
+      alignKeyToExportedSun(roomModel, roomCenter);
+      fitShadowCamera(keyLight, roomBounds);
+      addPictureLights(roomModel);
+      addDeskPracticals(roomModel);
+      addLibraryPracticals(roomModel);
+      addExteriorPracticals(roomModel, roomCenter);
+      if (roomModel.getObjectByName('ArchLeftWallCornice')) {
+        for (const z of [-1.84, 0.05, 1.94]) {
+          const wash = new THREE.PointLight(0xffc58a, 0.85, 2.5, 2);
+          wash.position.set(3.58, 2.67, z);
+          scene.add(wash);
         }
       }
-    });
-    scene.add(roomModel);
-    useExportedCamera(roomModel);
-    camera.layers.enable(1);
-    rememberHome();
-    monitorScreen = findMonitorScreen(roomModel);
-    if (monitorScreen?.material) {
-      monitorBaseMaterial = monitorScreen.material;
-      monitorScreen.material = monitorBaseMaterial.clone();
-      // The screen is the focal point, so it stays lit rather than only
-      // glowing on hover.
-      monitorScreen.material.emissiveIntensity = LOOK.screen.emissive;
-      monitorScreen.castShadow = false;
-    }
-
-    const roomBounds = interiorBounds(roomModel);
-    const roomCenter = roomBounds.getCenter(new THREE.Vector3());
-    alignKeyToExportedSun(roomModel, roomCenter);
-    fitShadowCamera(keyLight, roomBounds);
-    addPictureLights(roomModel);
-    addDeskPracticals(roomModel);
-    addLibraryPracticals(roomModel);
-    addExteriorPracticals(roomModel, roomCenter);
-    if (roomModel.getObjectByName('ArchLeftWallCornice')) {
-      for (const z of [-1.84, 0.05, 1.94]) {
-        const wash = new THREE.PointLight(0xffc58a, 0.85, 2.5, 2);
-        wash.position.set(3.58, 2.67, z);
-        scene.add(wash);
+      if (roomModel.getObjectByName('ArchOdysseusPlinth')) {
+        const sculptureCenter = new THREE.Box3()
+          .setFromObject(roomModel.getObjectByName('ArchOdysseusPlinth'))
+          .getCenter(new THREE.Vector3());
+        const sculptureLight = new THREE.SpotLight(0xffdfb0, 3, 3.8, 0.45, 0.65, 2);
+        sculptureLight.position.set(sculptureCenter.x + 0.56, 2.73, sculptureCenter.z - 0.01);
+        sculptureLight.target.position.set(sculptureCenter.x, 1.55, sculptureCenter.z);
+        sculptureLight.castShadow = true;
+        sculptureLight.shadow.mapSize.set(1024, 1024);
+        sculptureLight.shadow.camera.near = 0.15;
+        sculptureLight.shadow.camera.far = 3.8;
+        sculptureLight.shadow.bias = -0.0001;
+        sculptureLight.shadow.normalBias = 0.005;
+        scene.add(sculptureLight, sculptureLight.target);
+        const shelfWash = new THREE.PointLight(0xffc78c, 0.55, 2.3, 2);
+        shelfWash.position.set(-3.46, 2.80, -0.88);
+        scene.add(shelfWash);
       }
-    }
-    if (roomModel.getObjectByName('ArchOdysseusPlinth')) {
-      const sculptureCenter = new THREE.Box3()
-        .setFromObject(roomModel.getObjectByName('ArchOdysseusPlinth'))
-        .getCenter(new THREE.Vector3());
-      const sculptureLight = new THREE.SpotLight(0xffdfb0, 3, 3.8, 0.45, 0.65, 2);
-      sculptureLight.position.set(sculptureCenter.x + 0.56, 2.73, sculptureCenter.z - 0.01);
-      sculptureLight.target.position.set(sculptureCenter.x, 1.55, sculptureCenter.z);
-      sculptureLight.castShadow = true;
-      sculptureLight.shadow.mapSize.set(1024, 1024);
-      sculptureLight.shadow.camera.near = 0.15;
-      sculptureLight.shadow.camera.far = 3.8;
-      sculptureLight.shadow.bias = -0.0001;
-      sculptureLight.shadow.normalBias = 0.005;
-      scene.add(sculptureLight, sculptureLight.target);
-      const shelfWash = new THREE.PointLight(0xffc78c, 0.55, 2.3, 2);
-      shelfWash.position.set(-3.46, 2.80, -0.88);
-      scene.add(shelfWash);
-    }
 
-    const geometryBudget = batchStaticRoom(roomModel, isExterior);
-    if (import.meta.env.DEV) console.info(`Static room meshes: ${geometryBudget.before} -> ${geometryBudget.after}`);
-    renderer.shadowMap.needsUpdate = true;
-    roomReady = true;
-    controls.enabled = true;
-    canvas.setAttribute('aria-busy', 'false');
-    document.querySelectorAll('.room-controls button, #enter-desktop').forEach((button) => { button.disabled = false; });
-    progress.value = 100;
-    loading.classList.add('loaded');
-    document.body.classList.add('room-ready');
-    setDragMode(dragMode);
-    status.textContent = 'The room is ready. Explore the room, or open the computer.';
-    invalidate();
+      const geometryBudget = batchStaticRoom(roomModel, isExterior);
+      if (import.meta.env.DEV) console.info(`Static room meshes: ${geometryBudget.before} -> ${geometryBudget.after}`);
+      roomModel.updateMatrixWorld(true);
+      roomModel.traverse(object => { object.matrixAutoUpdate = false; object.matrixWorldAutoUpdate = false; });
+      progress.value = 99;
+      loadingMessage.textContent = 'Preparing a smooth first look…';
+      const layers = camera.layers.mask;
+      try {
+        camera.layers.set(1);
+        await renderer.compileAsync(scene, camera);
+        camera.layers.set(0);
+        await renderer.compileAsync(scene, camera);
+      } finally { camera.layers.mask = layers; }
+      exteriorRendered = false;
+      renderer.shadowMap.autoUpdate = true;
+      renderer.shadowMap.needsUpdate = true;
+      roomReady = true;
+      controls.enabled = true;
+      canvas.setAttribute('aria-busy', 'false');
+      document.querySelectorAll('.room-controls button, #enter-desktop').forEach((button) => { button.disabled = false; });
+      progress.value = 100;
+      loading.classList.add('loaded');
+      document.body.classList.add('room-ready');
+      setDragMode(dragMode);
+      status.textContent = 'The room is ready. Explore the room, or open the computer.';
+      if (!document.hidden) frameLoop?.resume();
+      invalidate();
+    } catch (error) { showRoomError(error); }
   },
   (event) => {
     if (event.lengthComputable && event.total) {
@@ -818,18 +871,15 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
       loadingMessage.textContent = percent === 99 ? 'Adding the finishing touches…' : `Preparing your view · ${percent}%`;
     }
   },
-  (err) => {
-    console.error('GLB load/callback failed:', err);
-    canvas.setAttribute('aria-busy', 'false');
-    loadingMessage.textContent = 'The room couldn’t load. Try again, or read my profile below.';
-    progress.hidden = true;
-    document.querySelector('#retry-room').hidden = false;
-  },
+  showRoomError,
 );
 
 function setDragMode(mode) {
   if (mode === 'follow' && (coarsePointer.matches || reducedMotion.matches)) mode = 'look';
-  if (dragMode === 'follow' && mode !== 'follow') cursorGoal.set(0, 0);
+  if (roomReady && dragMode === 'follow' && mode !== 'follow') {
+    settleCursorView();
+    settleControls();
+  }
   dragMode = mode;
   controls.enableRotate = mode !== 'follow';
   controls.enablePan = mode !== 'follow';
@@ -871,18 +921,12 @@ canvas.addEventListener('pointerdown', (event) => {
   zoomGoal = null;
 }, { capture: true });
 canvas.addEventListener('pointermove', (event) => {
-  lastHoverPointer = { clientX: event.clientX, clientY: event.clientY };
-  if (dragMode === 'follow' && controls.enabled && !reducedMotion.matches && event.pointerType !== 'touch') {
-    const rect = canvas.getBoundingClientRect();
-    cursorGoal.set(
-      THREE.MathUtils.clamp((event.clientX - rect.left) / rect.width * 2 - 1, -1, 1),
-      THREE.MathUtils.clamp(1 - (event.clientY - rect.top) / rect.height * 2, -1, 1),
-    );
-  }
+  lastHoverPointer = { clientX: event.clientX, clientY: event.clientY, pointerType: event.pointerType };
+  hoverDirty = true;
   if (dragOrigin) pointerTravel = Math.max(pointerTravel,
     Math.hypot(event.clientX - dragOrigin.x, event.clientY - dragOrigin.y));
   if (activePointers.size) setMonitorHover(false);
-  else updateMonitorHit(event);
+  frameLoop?.wake();
 });
 function releasePointer(event) {
   activePointers.delete(event.pointerId);
@@ -890,7 +934,8 @@ function releasePointer(event) {
 }
 window.addEventListener('pointerup', releasePointer);
 window.addEventListener('pointercancel', (event) => { pointerDownHit = false; releasePointer(event); });
-canvas.addEventListener('pointerleave', () => { lastHoverPointer = null; setMonitorHover(false); cursorGoal.set(0, 0); });
+// Keep the last view while the pointer visits navigation or leaves the room.
+canvas.addEventListener('pointerleave', () => { lastHoverPointer = null; hoverDirty = false; setMonitorHover(false); });
 canvas.addEventListener('click', (event) => {
   if (!multiTouchGesture && pointerDownHit && pointerTravel <= 7 && updateMonitorHit(event)) focusMonitor();
   pointerDownHit = false;
@@ -971,7 +1016,12 @@ reducedMotion.addEventListener('change', () => {
   else setDragMode(dragMode);
   invalidate();
 });
-document.addEventListener('visibilitychange', () => { lastFrameTime = performance.now(); invalidate(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) frameLoop?.pause();
+  else if (!desktop.classList.contains('visible')) { frameLoop?.resume(); invalidate(); }
+});
+new ResizeObserver(() => { setSize(); invalidate(); }).observe(canvas);
+window.addEventListener('resize', () => { lastCanvasWidth = 0; setSize(); });
 
 // Shared section navigation: both the header and contextual portfolio links.
 function showPortfolioSection(id, focusPanel = false) {
@@ -994,11 +1044,17 @@ desktop.addEventListener('click', event => {
   showPortfolioSection(`portfolio-${link.dataset.section}`, true);
 });
 
-function animate(now = performance.now()) {
-  const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
-  lastFrameTime = now;
-  if (document.hidden) { requestAnimationFrame(animate); return; }
-  setSize();
+function animate(now, dt) {
+  if (document.hidden || desktop.classList.contains('visible')) return false;
+  let controlsMoving = false;
+  if (hoverDirty && lastHoverPointer && dragMode === 'follow' && controls.enabled
+    && !reducedMotion.matches && lastHoverPointer.pointerType !== 'touch') {
+    const rect = canvas.getBoundingClientRect();
+    cursorGoal.set(
+      followInput((lastHoverPointer.clientX - rect.left) / rect.width * 2 - 1),
+      followInput(1 - (lastHoverPointer.clientY - rect.top) / rect.height * 2),
+    );
+  }
   if (flight) advanceFlight(now);
   if (!flight && roomReady && !desktop.classList.contains('visible')) {
     if (zoomGoal !== null) {
@@ -1018,10 +1074,10 @@ function animate(now = performance.now()) {
       invalidate();
     }
     controls.dampingFactor = responseAt(7, dt);
-    controls.update();
+    controlsMoving = controls.update();
     if (homePose) {
       // Room-scale pans, with the eye kept inside the walls and above the floor.
-      const delta = controls.target.clone().sub(homePose.target);
+      const delta = controls.target.clone().sub(panAnchor ?? homePose.target);
       const bounded = delta.clone().clamp(
         new THREE.Vector3(-1.8, -0.85, -1.8), new THREE.Vector3(1.8, 0.85, 1.8));
       const correction = bounded.sub(delta);
@@ -1050,13 +1106,16 @@ function animate(now = performance.now()) {
   }
   // A stationary pointer can enter/leave the screen while the room is easing.
   // Hit-test the displayed pose each frame, not just pointermove events.
-  if (lastHoverPointer && controls.enabled && !flight && !activePointers.size) {
+  if ((hoverDirty || needsRender) && lastHoverPointer && controls.enabled && !flight && !activePointers.size) {
     updateMonitorHit(lastHoverPointer);
   }
+  hoverDirty = false;
+  let monitorMoving = false;
   if (monitorScreen?.material) {
     const wanted = LOOK.screen.emissive * (isHoveringMonitor ? 1.6 : 1);
     const material = monitorScreen.material;
     if (Math.abs(material.emissiveIntensity - wanted) > 0.001) {
+      monitorMoving = true;
       material.emissiveIntensity = reducedMotion.matches ? wanted
         : THREE.MathUtils.lerp(material.emissiveIntensity, wanted, responseAt(10, dt));
       invalidate();
@@ -1068,8 +1127,16 @@ function animate(now = performance.now()) {
     const savedLayers = camera.layers.mask;
     withCursorView(() => {
       renderer.clear(true, true, true);
-      camera.layers.set(1);
-      renderer.render(scene, camera);
+      const outside = windowScissor(windowBounds, camera, lastCanvasWidth, lastCanvasHeight);
+      if (outside) {
+        renderer.setScissor(outside.x, outside.y, outside.width, outside.height);
+        renderer.setScissorTest(true);
+        camera.layers.set(1);
+        if (!exteriorRendered) renderer.shadowMap.needsUpdate = true;
+        renderer.render(scene, camera);
+        exteriorRendered = true;
+        renderer.setScissorTest(false);
+      }
       camera.layers.set(0);
       renderer.render(scene, camera);
     });
@@ -1077,10 +1144,13 @@ function animate(now = performance.now()) {
     if (roomReady) renderer.shadowMap.autoUpdate = false;
     needsRender = false;
   }
-  requestAnimationFrame(animate);
+  return !!flight || controlsMoving || zoomGoal !== null || pendingPan.lengthSq() > .0000001
+    || cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0 || monitorMoving;
 }
 
-animate();
+frameLoop = createFrameLoop(animate);
+setSize();
+frameLoop.wake();
 
 canvas.addEventListener('webglcontextlost', (event) => {
   event.preventDefault();

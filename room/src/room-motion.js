@@ -37,3 +37,12 @@ export function roomLookAngles(x, y) {
     pitch: vertical * (vertical >= 0 ? 0.40 : 0.68),
   };
 }
+
+// Ignore tiny resting-hand motion, blending smoothly out of the center.
+// Unlike a hard threshold, the response has zero slope at the dead-zone edge.
+export function followInput(value, deadZone = .025) {
+  const magnitude = Math.min(1, Math.abs(value));
+  if (magnitude <= deadZone) return 0;
+  const t = (magnitude - deadZone) / (1 - deadZone);
+  return Math.sign(value) * 1.04 * t * t / (t + .04);
+}
