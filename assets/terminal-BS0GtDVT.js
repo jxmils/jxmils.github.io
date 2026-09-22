@@ -1,0 +1,20 @@
+const w=["help","about","research","experience","education","projects","skills","contact","links","clear","regular"],q={whoami:"about",bio:"about",work:"experience",cv:"experience",ls:"help",exit:"regular",gui:"regular"};function A(r){const n=r.trim().toLowerCase();if(!n)return{type:"empty"};const s=q[n]||n;return w.includes(s)?{type:s}:{type:"unknown",message:`Command not found: ${r.trim()}. Type help to see what you can explore.`}}function C(r){const n=r.trim().toLowerCase();return n?w.filter(s=>s.startsWith(n)):[]}for(const r of document.querySelectorAll("[data-terminal-shell]")){let u=function(e,t="response"){const l=document.createElement("div");for(l.className=`terminal-${t}`,l.textContent=e,p.append(l);p.children.length>80;)p.firstElementChild.remove();i.scrollTop=i.scrollHeight},g=function(e){i.hidden=!e,s.hidden=e,r.classList.toggle("terminal-mode",e),n.textContent=e?"Regular view":"Terminal",n.setAttribute("aria-pressed",String(e)),r.querySelector(".dock")?.setAttribute("inert",""),e||r.querySelector(".dock")?.removeAttribute("inert"),e?o.focus({preventScroll:!0}):n.focus({preventScroll:!0})},k=function(e){const t=A(e);if(t.type!=="empty"){if(a.push(e),a.length>100&&a.shift(),d=a.length,f="",o.value="",t.type==="clear"){p.replaceChildren(),o.focus();return}if(u(`jason@oxford:~$ ${e}`,"command"),t.type==="regular"){g(!1);return}if(t.type==="help")u(`Explore
+  about        My background
+  research     AI systems at Oxford
+  experience   Research & engineering roles
+  education    Where I’ve studied
+  projects     Selected work
+  skills       Languages & tools
+  contact      Get in touch
+  links        GitHub, LinkedIn & email
+
+Navigate
+  clear        Clear the terminal
+  regular      Return to the regular view
+
+Tab completes commands · ↑ ↓ recall history · whoami also works.`);else if(t.type==="links"){u("Find me elsewhere");const l=document.createElement("div");l.className="terminal-links",y("contact").querySelectorAll(".contact-list a").forEach(c=>{const h=document.createElement("a");h.href=c.href,h.textContent=m(c.querySelector("strong")),c.target&&(h.target="_blank",h.rel="noopener noreferrer"),l.append(h)}),p.append(l)}else t.type==="unknown"?u(t.message,"error"):u(x(t.type));o.focus({preventScroll:!0}),i.scrollTop=i.scrollHeight}};var b=u,E=g,j=k;const n=r.querySelector("[data-view-toggle]"),s=r.querySelector("[data-regular-view]"),i=r.querySelector("[data-terminal-view]"),p=r.querySelector("[data-terminal-output]"),v=r.querySelector("[data-terminal-form]"),o=v.querySelector("input"),a=[];let d=0,f="";const S=[...s.querySelectorAll(".portfolio-panel")],y=e=>S.find(t=>t.id===e||t.id===`portfolio-${e}`),m=e=>{if(!e)return"";const t=e.cloneNode(!0);return t.querySelectorAll("br").forEach(l=>l.replaceWith(`
+`)),t.textContent.replace(/[ \t]+/g," ").trim()},x=e=>{const t=y(e),l=e==="experience"?".career-row":e==="education"?".education-list article, .personal-note":e==="projects"?".project-grid article":e==="skills"?".toolkit > div":e==="research"?".section-intro, .research-rows article, .research-note, .personal-note":e==="contact"?".section-intro, .contact-list a, .contact-foot":".hero-copy, .about-note";return[...(e==="skills"?y("projects"):t)?.querySelectorAll(l)||[]].map(c=>[...c.querySelectorAll("h1,h2,h3,p,small,strong,dt,dd,.career-date")].map(m).filter(Boolean).join(`
+`)||(c.children.length?[...c.children].map(m).join(`
+`):m(c))).join(`
+
+`)};n.addEventListener("click",()=>g(i.hidden)),v.addEventListener("submit",e=>{e.preventDefault(),k(o.value)}),i.querySelectorAll("[data-command]").forEach(e=>e.addEventListener("click",()=>k(e.dataset.command))),o.addEventListener("keydown",e=>{if(e.key==="ArrowUp"||e.key==="ArrowDown")e.preventDefault(),d===a.length&&(f=o.value),d=Math.max(0,Math.min(a.length,d+(e.key==="ArrowUp"?-1:1))),o.value=d===a.length?f:a[d];else if(e.key==="Tab"&&o.value.trim()){const t=C(o.value);t.length&&(e.preventDefault(),t.length===1?o.value=t[0]:u(t.join("   ")))}else e.ctrlKey&&e.key.toLowerCase()==="l"&&(e.preventDefault(),p.replaceChildren())})}

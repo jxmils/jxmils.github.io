@@ -1,18 +1,20 @@
 {
-  "sourceCommit": "2eb3b37495d4f89806daad6d5e30677a2bc26b79",
-  "previousPagesCommit": "1655993c14444a7a654f72e918e1e6ee07dbe046",
+  "sourceCommit": "ab2aa60a7a634e23864ed8556529907522feb0c3",
+  "previousPagesCommit": "4d343228a788256d9a12bb424e238cea88d4cdf5",
   "sourceDirectory": "room",
-  "builtAt": "2026-09-22T00:33:22.963749+00:00",
+  "builtAt": "2026-09-22T00:49:50.920908+00:00",
   "files": {
-    "profile.html": "7370332c34c5b00f6af4b6b7c60b979e489bad00803a2423a348dc47539006c1",
-    "index.html": "4c127bd4df8211848c840efe7141a820fe6f61c3f4b11a5ab977f2d3bdebfaa7",
+    "profile.html": "2ba7d7f68c8e939c9ccd763d6c9d802eaadea953f67add704866b1a958fb7886",
+    "index.html": "a562d38594c8b90f382d4ddbbbc63b316a388956c10e4ede88a5132d9312ae47",
+    "assets/main-79zzEX_H.js": "b4d1a66a1223ba9cbfa3b3b8530df648601ea57b18cca0a443e70bbaf3f0fa32",
     "assets/jason-portrait-CEbsmSKs.jpg": "76c2d7ccd2d37e0aac39f95ea7e29e9f7bc11aa4c39db247f066509890167947",
-    "assets/room--4WBdveA.js": "f94bfb12d1b5bced8bcba0e3a5d9f95832fcc2efdf2ae0755f699ce38d76ea5a",
-    "assets/portfolio-BhNko418.css": "ed72b517add9728bb673faae5ab30b16118954a171b62ea947d20cdabc1ccec5",
+    "assets/terminal-BS0GtDVT.js": "99d9d7354602909726023fac1f03abbcdcd7b862afcd1a203525b64320b5489e",
     "assets/three-B_x1fXK-.js": "12235aea2d7d8b68a2ee069dce0aefaaa0a000a9d58978039af300babd4f78d8",
-    "assets/room-Ev7if_GV.glb": "ed6c6f5c479e2601ba25ecdbb540157acd5ce1de6ff1a151c1bd642c1b9b8480",
+    "assets/room-DpfaslDI.glb": "b3302072e219d2d4cf738942bedeb22f9c9b0ed526ef13c0473e1ba4077ec66b",
+    "assets/room-ry7Xfuoq.js": "4479578138a302414a198aa0d59241bd67e56ad60768ad8a4903e37c4060e6c2",
+    "assets/portfolio-B-T98ZBR.css": "5615716a49cc028ed2007c3597a9bf5c76ee39b1b5909ebb789ff6a176e07b45",
     "assets/room-x140Y9Jv.css": "8b2fdf08094c7cbeed4cc3fb21a65aa3299f1ca249cbb0f2775a0b2e5e2a5165",
-    "assets/main-ng96lQBq.js": "86f73f607e842071f0cf00f2306526daa83b379f66d45d9a4f9e8f4511a98f6c",
+    "assets/portfolio-BOVAOarG.js": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
     "assets/favicon-FujqvBKN.svg": "a6e5f3a495f1ed8d88ae349f76ef18b4326b20c9159eae93b534d53641859002"
   }
 }
