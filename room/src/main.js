@@ -132,6 +132,7 @@ scene.add(new THREE.HemisphereLight(LOOK.hemi.sky, LOOK.hemi.ground, LOOK.hemi.i
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let monitorScreen = null;
+let monitorOutline = null;
 let monitorBaseMaterial = null;
 let roomModel = null;
 let windowBounds = null;
@@ -799,6 +800,17 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
         // glowing on hover.
         monitorScreen.material.emissiveIntensity = LOOK.screen.emissive;
         monitorScreen.castShadow = false;
+        // A precise, quiet edge highlight reinforces the brighter screen.
+        // This follows the monitor in 3D and never becomes a separate hit target.
+        monitorOutline = new THREE.LineSegments(
+          new THREE.EdgesGeometry(monitorScreen.geometry, 20),
+          new THREE.LineBasicMaterial({ color: 0xf2d6a2, transparent: true,
+            opacity: 0, depthWrite: false, toneMapped: false }),
+        );
+        monitorOutline.name = 'MonitorHoverOutline';
+        monitorOutline.raycast = () => {};
+        monitorOutline.renderOrder = 2;
+        monitorScreen.add(monitorOutline);
       }
 
       const roomBounds = interiorBounds(roomModel);
@@ -1112,7 +1124,7 @@ function animate(now, dt) {
   hoverDirty = false;
   let monitorMoving = false;
   if (monitorScreen?.material) {
-    const wanted = LOOK.screen.emissive * (isHoveringMonitor ? 1.6 : 1);
+    const wanted = LOOK.screen.emissive * (isHoveringMonitor ? 2.25 : 1);
     const material = monitorScreen.material;
     if (Math.abs(material.emissiveIntensity - wanted) > 0.001) {
       monitorMoving = true;
@@ -1120,6 +1132,17 @@ function animate(now, dt) {
         : THREE.MathUtils.lerp(material.emissiveIntensity, wanted, responseAt(10, dt));
       invalidate();
     }
+  }
+  if (monitorOutline) {
+    const wanted = isHoveringMonitor ? .9 : 0;
+    const material = monitorOutline.material;
+    if (Math.abs(material.opacity - wanted) > .003) {
+      monitorMoving = true;
+      material.opacity = reducedMotion.matches ? wanted
+        : THREE.MathUtils.lerp(material.opacity, wanted, responseAt(12, dt));
+      invalidate();
+    } else material.opacity = wanted;
+    monitorOutline.visible = material.opacity > .003;
   }
   // Render only when something visible changes; a quiet room or open computer
   // should not keep submitting millions of triangles to the GPU.
