@@ -10,10 +10,10 @@
     <meta property="og:description" content="An interactive study. AI systems research at the University of Oxford." />
     <meta property="og:type" content="website" />
     <link rel="icon" href="/assets/favicon-FujqvBKN.svg" type="image/svg+xml" />
-    <script type="module" crossorigin src="/assets/room-Cl6SU9oH.js"></script>
+    <script type="module" crossorigin src="/assets/room-Cav0Z-p7.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/portfolio-BOVAOarG.js">
     <link rel="stylesheet" crossorigin href="/assets/portfolio-B-T98ZBR.css">
-    <link rel="stylesheet" crossorigin href="/assets/room-gbPsp0S9.css">
+    <link rel="stylesheet" crossorigin href="/assets/room-BQL6D-BS.css">
   </head>
   <body>
     <div id="app">
@@ -43,7 +43,7 @@
           <p>Click the monitor to open the computer. <kbd>Esc</kbd> brings you back.</p>
         </div>
         <div class="camera-dial">
-          <svg viewBox="0 0 192 106" aria-hidden="true">
+          <svg viewBox="0 0 240 80" aria-hidden="true">
             <defs>
               <linearGradient id="dial-charcoal" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stop-color="#354348" />
@@ -57,12 +57,12 @@
                 <stop offset="1" stop-color="#aa8758" />
               </radialGradient>
             </defs>
-            <path class="dial-shadow" d="M22 87 A74 74 0 0 1 170 87" />
-            <path class="dial-rim" d="M22 84 A74 74 0 0 1 170 84" />
-            <path class="dial-band" d="M22 84 A74 74 0 0 1 170 84" />
-            <path class="dial-track" d="M22 84 A74 74 0 0 1 170 84" />
-            <path class="dial-center-tick" d="M96 1 V5" />
-            <circle id="camera-dial-ball" cx="96" cy="10" r="8" />
+            <path class="dial-shadow" d="M22 54 Q120 -14 218 54" />
+            <path class="dial-rim" d="M22 52 Q120 -16 218 52" />
+            <path class="dial-band" d="M22 52 Q120 -16 218 52" />
+            <path class="dial-track" d="M22 52 Q120 -16 218 52" />
+            <path class="dial-center-tick" d="M120 5 V8" />
+            <circle id="camera-dial-ball" cx="120" cy="18" r="8" />
           </svg>
           <input id="camera-dial" type="range" min="-100" max="100" step="1" value="0" aria-label="Look around the room" aria-describedby="gesture-hint" disabled>
           <button id="center-camera" type="button" aria-label="Return to desk" title="Return to desk" disabled><span aria-hidden="true">⌂</span><span>Desk</span></button>
@@ -70,10 +70,9 @@
         <nav class="room-controls" aria-label="Room navigation">
           <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)" disabled>−</button>
           <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)" disabled>+</button>
-          <button id="reset-view" type="button" title="Return to the original view (R)" disabled>Reset</button>
           <button id="show-help" type="button" aria-label="Navigation help" aria-expanded="false" aria-controls="navigation-help">?</button>
         </nav>
-        <p class="gesture-hint" id="gesture-hint">Drag the ball to look around · Tap Desk to center</p>
+        <p class="gesture-hint" id="gesture-hint">Drag to look · Desk to center</p>
       </div>
       <div id="monitor-hint" class="monitor-hint" aria-hidden="true">Open computer <span>↗</span></div>
       <p id="room-status" class="sr-only" role="status" aria-live="polite"></p>
