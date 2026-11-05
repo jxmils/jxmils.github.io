@@ -7,7 +7,7 @@ test('quantized meshes retain world-space bounds when batched, and monitor stays
  for(let i=0;i<3;i++){
   const geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.BufferAttribute(new Int16Array([-32767,0,0,32767,0,0,0,32767,0]),3,true));
-  const mesh=new THREE.Mesh(geometry,material);mesh.position.x=10+i*3;root.add(mesh);
+  const mesh=new THREE.Mesh(geometry,material);mesh.position.x=10+i*.1;root.add(mesh);
  }
  const screen=new THREE.Mesh(new THREE.PlaneGeometry(),material);screen.name='MonitorScreen';root.add(screen);
  const result=batchStaticRoom(root,()=>false);
@@ -16,7 +16,7 @@ test('quantized meshes retain world-space bounds when batched, and monitor stays
  const batch=root.children.find(o=>o!==screen);
  batch.geometry.computeBoundingBox();
  assert.equal(batch.geometry.boundingBox.min.x,9);
- assert.equal(batch.geometry.boundingBox.max.x,17);
+ assert.ok(Math.abs(batch.geometry.boundingBox.max.x-11.2)<1e-5);
  assert.ok(batch.geometry.attributes.position.array instanceof Float32Array);
 });
 
@@ -43,3 +43,15 @@ test('batch cleanup preserves geometry still used by interactive meshes',()=>{
  assert.equal(disposed,false);
  assert.equal(root.getObjectByName('MonitorScreen').geometry,geometry);
 });
+
+ test('offscreen interior clusters remain independently cullable with exact geometry', () => {
+   const root = new THREE.Group(), material = new THREE.MeshStandardMaterial();
+   for (const x of [-4,-3.9,-3.8,4,4.1,4.2]) {
+     const mesh = new THREE.Mesh(new THREE.BoxGeometry(), material);
+     mesh.position.x = x; root.add(mesh);
+   }
+   assert.deepEqual(batchStaticRoom(root, () => false), { before: 6, after: 2 });
+   assert.equal(root.children.reduce((n,m) => n+m.geometry.index.count, 0), 6*36);
+   assert.ok(!new THREE.Box3().setFromObject(root.children[0])
+     .intersectsBox(new THREE.Box3().setFromObject(root.children[1])));
+ });
