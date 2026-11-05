@@ -81,3 +81,41 @@ test('pointer look uses canvas coordinates, stays bounded and has a quiet center
   assert.ok(small.x > 0 && small.x < large.x);
   assert.ok(small.y > 0 && small.y < large.y);
 });
+
+import { dampLook } from '../src/room-motion.js';
+test('pointer response catches up within 250ms without a jump or fixed-target overshoot', () => {
+  function simulate(hz, duration) {
+    let state = {value: 0, velocity: 0}, elapsed = 0;
+    while (elapsed < duration - 1e-12) {
+      const dt = Math.min(1/hz, duration-elapsed);
+      state = dampLook(state.value, state.velocity, 1, dt);
+      assert.ok(state.value >= 0 && state.value <= 1);
+      elapsed += dt;
+    }
+    return state;
+  }
+  assert.ok(dampLook(0,0,1,1/60).value < .04, 'eased first frame');
+  const reference = simulate(120,.25);
+  assert.ok(reference.value > .9, 'follow the pointer rather than trail far behind it');
+  for (const hz of [30,60,144]) {
+    const result = simulate(hz,.25);
+    assert.ok(Math.abs(result.value-reference.value) < 1e-12);
+    assert.ok(Math.abs(result.velocity-reference.velocity) < 1e-12);
+  }
+});
+
+test('rapid pointer reversals remain continuous and bounded', () => {
+  for (const hz of [30,60,120]) {
+    let state = {value: 0, velocity: 0};
+    for (const target of [1,-1,1,-1,0]) {
+      for (let i=0; i<hz/5; i++) {
+        const next = dampLook(state.value,state.velocity,target,1/hz);
+        assert.ok(Math.abs(next.value) <= 1);
+        assert.ok(Math.abs(next.value-state.value) < .4);
+        state = next;
+      }
+    }
+    for (let i=0; i<hz; i++) state = dampLook(state.value,state.velocity,0,1/hz);
+    assert.ok(Math.abs(state.value) < .00001);
+  }
+});

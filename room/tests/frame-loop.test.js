@@ -72,14 +72,43 @@ test('motion quality ignores short stalls, adapts to sustained slow frames and r
  let scale=1;
  for(let i=0;i<180;i++) scale=slow.sample(1/30,true);
  assert.equal(scale,.65);
- assert.equal(slow.sample(1/60,false),1);
+ assert.equal(slow.sample(1/60,false),.65);
+ assert.equal(slow.settling,true);
+ for(let i=0;i<18;i++) scale=slow.sample(1/60,false);
+ assert.equal(scale,1);
+ assert.equal(slow.settling,false);
  assert.equal(slow.sample(1/60,true),.65);
- assert.equal(slow.sample(1/60,false),1);
 });
 
  test('motion quality responds within a short gesture, not only after it ends', () => {
    const quality = createMotionQuality(); let scale = 1;
    for (let i = 0; i < 30; i++) scale = quality.sample(1/30, true);
    assert.ok(scale < 1);
-   assert.equal(quality.sample(1/60, false), 1);
+   for (let i = 0; i < 18; i++) scale = quality.sample(1/60, false);
+   assert.equal(scale, 1);
  });
+
+test('brief pauses keep the motion buffer stable; real rest restores once and sleeps', () => {
+  const quality = createMotionQuality();
+  let scale;
+  for (let i=0; i<180; i++) scale = quality.sample(1/30, true);
+  for (let burst=0; burst<10; burst++) {
+    for (let i=0; i<6; i++) assert.equal(quality.sample(1/60, false), scale);
+    assert.equal(quality.sample(1/60, true), scale);
+  }
+  let callback = null, ticks = 0, restores = 0;
+  const loop = createFrameLoop((now, dt) => {
+    ticks++;
+    const next = quality.sample(dt, false);
+    if (next !== scale) { restores++; scale = next; }
+    return quality.settling;
+  }, cb => { callback = cb; return ticks; }, () => { callback = null; });
+  loop.wake();
+  for (let i=0; i<30 && callback; i++) {
+    const next = callback; callback = null; next(i*1000/60);
+  }
+  assert.equal(scale, 1);
+  assert.equal(restores, 1);
+  assert.ok(ticks <= 14);
+  assert.equal(callback, null, 'idle grace period must not leave a permanent RAF loop');
+});

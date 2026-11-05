@@ -9,10 +9,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { prepareStaticRoom } from './scene-performance.js';
-import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles, pointerLook } from './room-motion.js';
+import { zoomDistance, motionProgress, responseAt, dampLook, roomLookAngles, pointerLook } from './room-motion.js';
 
 import { windowScissor, fitWindowCamera } from './window-render.js';
 import { createFrameLoop, roomPixelRatio, createMotionQuality } from './frame-loop.js';
+import { createPointerInput } from './pointer-input.js';
 
 const canvas = document.querySelector('#room-canvas');
 const desktop = document.querySelector('#desktop');
@@ -162,6 +163,9 @@ const cursorGoal = new THREE.Vector2();
 const cursorOffset = new THREE.Vector2();
 const cursorVelocity = new THREE.Vector2();
 let lastHoverPointer = null;
+const hoverPointer = { clientX: 0, clientY: 0, pointerType: 'mouse' };
+const pointerInput = createPointerInput();
+let canvasBounds = null;
 let pointerDownHit = false;
 const activePointers = new Set();
 let multiTouchGesture = false;
@@ -184,6 +188,7 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 controls.enableDamping = !reducedMotion.matches;
 
 function setSize() {
+  canvasBounds = canvas.getBoundingClientRect();
   const { clientWidth, clientHeight } = canvas;
   if (clientWidth === lastCanvasWidth && clientHeight === lastCanvasHeight) return;
   lastCanvasWidth = clientWidth;
@@ -278,7 +283,7 @@ function settleControls() {
 }
 
 function setPointer(event) {
-  const rect = canvas.getBoundingClientRect();
+  const rect = canvasBounds ?? canvas.getBoundingClientRect();
   pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 }
@@ -402,6 +407,7 @@ function updateMonitorHit(event) {
 // at the interpolated target avoids the old end-of-flight orientation snap.
 function flyTo(position, target, duration = 1100, onArrive) {
   if (!roomReady) return;
+  pointerInput.clear();
   settleCursorView();
   if (!flight) settleControls();
   controls.enabled = false;
@@ -900,6 +906,7 @@ function queueZoom(delta, deltaMode = 0) {
 canvas.addEventListener('pointerdown', (event) => {
   if (!controls.enabled) return;
   canvas.focus({ preventScroll: true });
+  pointerInput.clear();
   // Let the monitor stay put between pointerdown and click.
   cursorGoal.copy(cursorOffset);
   cursorVelocity.set(0, 0);
@@ -914,7 +921,10 @@ canvas.addEventListener('pointerdown', (event) => {
   zoomGoal = null;
 }, { capture: true });
 canvas.addEventListener('pointermove', (event) => {
-  lastHoverPointer = { clientX: event.clientX, clientY: event.clientY, pointerType: event.pointerType };
+  hoverPointer.clientX = event.clientX;
+  hoverPointer.clientY = event.clientY;
+  hoverPointer.pointerType = event.pointerType;
+  lastHoverPointer = hoverPointer;
   hoverDirty = true;
   if (dragOrigin) pointerTravel = Math.max(pointerTravel,
     Math.hypot(event.clientX - dragOrigin.x, event.clientY - dragOrigin.y));
@@ -926,9 +936,7 @@ canvas.addEventListener('pointermove', (event) => {
     : activePointers.size === 0 && !reducedMotion.matches;
   if (following && roomReady && controls.enabled && !flight
     && !desktop.classList.contains('visible')) {
-    const look = pointerLook(event.clientX, event.clientY, canvas.getBoundingClientRect());
-    cursorGoal.set(look.x, look.y);
-    invalidate();
+    pointerInput.push(event.clientX, event.clientY);
   }
   frameLoop?.wake();
 });
@@ -937,9 +945,9 @@ function releasePointer(event) {
   if (!activePointers.size) dragOrigin = null;
 }
 window.addEventListener('pointerup', releasePointer);
-window.addEventListener('pointercancel', (event) => { pointerDownHit = false; releasePointer(event); });
+window.addEventListener('pointercancel', (event) => { pointerInput.clear(); pointerDownHit = false; releasePointer(event); });
 // Keep the last view while the pointer visits the header or leaves the room.
-canvas.addEventListener('pointerleave', () => { lastHoverPointer = null; hoverDirty = false; setMonitorHover(false); });
+canvas.addEventListener('pointerleave', () => { pointerInput.clear(); lastHoverPointer = null; hoverDirty = false; setMonitorHover(false); });
 canvas.addEventListener('click', (event) => {
   if (!multiTouchGesture && pointerDownHit && pointerTravel <= 7 && updateMonitorHit(event)) focusMonitor();
   pointerDownHit = false;
@@ -986,13 +994,14 @@ window.addEventListener('keydown', (event) => {
 });
 
 reducedMotion.addEventListener('change', () => {
+  pointerInput.clear();
   controls.enableDamping = !reducedMotion.matches;
   if (reducedMotion.matches && flight) flight.duration = 1;
 
   invalidate();
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) frameLoop?.pause();
+  if (document.hidden) { pointerInput.clear(); frameLoop?.pause(); }
   else if (!desktop.classList.contains('visible')) { frameLoop?.resume(); invalidate(); }
 });
 new ResizeObserver(() => { setSize(); invalidate(); }).observe(canvas);
@@ -1019,8 +1028,17 @@ desktop.addEventListener('click', event => {
   showPortfolioSection(`portfolio-${link.dataset.section}`, true);
 });
 
+function applyPointerLook(x, y) {
+  const look = pointerLook(x, y, canvasBounds);
+  if (cursorGoal.x !== look.x || cursorGoal.y !== look.y) {
+    cursorGoal.set(look.x, look.y);
+    invalidate();
+  }
+}
+
 function animate(now, dt) {
   if (document.hidden || desktop.classList.contains('visible')) return false;
+  if (roomReady && controls.enabled && !flight) pointerInput.consume(applyPointerLook);
   let controlsMoving = false;
   if (flight) advanceFlight(now);
   if (!flight && roomReady && !desktop.classList.contains('visible')) {
@@ -1054,7 +1072,7 @@ function animate(now, dt) {
   if (!flight && !desktop.classList.contains('visible')
     && (cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0)) {
     for (const axis of ['x', 'y']) {
-      const next = dampAxis(cursorOffset[axis], cursorVelocity[axis], cursorGoal[axis], dt);
+      const next = dampLook(cursorOffset[axis], cursorVelocity[axis], cursorGoal[axis], dt);
       cursorOffset[axis] = reducedMotion.matches ? cursorGoal[axis] : next.value;
       cursorVelocity[axis] = reducedMotion.matches ? 0 : next.velocity;
     }
@@ -1092,9 +1110,10 @@ function animate(now, dt) {
     } else material.opacity = wanted;
     monitorOutline.visible = material.opacity > .003;
   }
-  const moving = !!flight || controlsMoving || zoomGoal !== null
-    || cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0 || monitorMoving;
-  const nextScale = motionQuality.sample(dt, moving);
+  const cameraMoving = !!flight || controlsMoving || zoomGoal !== null
+    || cursorOffset.distanceToSquared(cursorGoal) > 0 || cursorVelocity.lengthSq() > 0;
+  const moving = cameraMoving || monitorMoving;
+  const nextScale = motionQuality.sample(dt, cameraMoving);
   if (Math.abs(nextScale - renderScale) > .001) {
     renderScale = nextScale;
     renderer.setPixelRatio(roomPixelRatio(lastCanvasWidth, lastCanvasHeight,
@@ -1129,7 +1148,7 @@ function animate(now, dt) {
     if (roomReady) renderer.shadowMap.autoUpdate = false;
     needsRender = false;
   }
-  return moving;
+  return moving || motionQuality.settling;
 }
 
 frameLoop = createFrameLoop(animate);

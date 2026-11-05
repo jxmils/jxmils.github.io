@@ -45,3 +45,11 @@ computer when the canvas has focus. Passive pointer-following is disabled for
 reduced-motion preferences, with keyboard and touch navigation still available.
 Header buttons retain clear focus/pressed states. The computer/profile content
 and camera framing are unchanged.
+
+Pointer updates are coalesced to the latest sample once per animation frame,
+using cached canvas bounds. The look response is critically damped and reaches
+90% of a fixed target in about 243 ms, versus about 486 ms previously; these are
+response-model timings, not a measured rendering-speed claim. Brief pauses keep
+the current motion resolution for 200 ms before restoring full sharpness,
+avoiding drawing-buffer resize churn during small repeated movements. Hover
+highlights alone no longer lower the camera resolution.

@@ -28,10 +28,19 @@ export function roomPixelRatio(width, height, deviceRatio, coarse = false) {
 // Adapt only after sustained slow animation, never a single loading hiccup.
 // Keep the chosen motion budget for the visit, restoring full sharpness at rest.
 export function createMotionQuality() {
-  let scale = 1, slowSeconds = 0, warmup = .2;
+  let scale = 1, slowSeconds = 0, warmup = .2, idleSeconds = .2;
   return {
+    // Keep ticking without repainting during a short idle grace period. This
+    // avoids reallocating the drawing buffer on every tiny pointer pause.
+    get settling() { return scale < 1 && idleSeconds < .2; },
     sample(dt, moving) {
-      if (!moving) { slowSeconds = 0; warmup = .2; return 1; }
+      if (!moving) {
+        idleSeconds += dt;
+        if (scale < 1 && idleSeconds < .2) return scale;
+        slowSeconds = 0; warmup = .2;
+        return 1;
+      }
+      idleSeconds = 0;
       if (warmup > 0) { warmup -= dt; return scale; }
       slowSeconds = dt > 1 / 45 ? slowSeconds + Math.min(dt, .1) : Math.max(0, slowSeconds - dt * 2);
       if (slowSeconds > .4 && scale > .65) {

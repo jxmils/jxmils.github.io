@@ -28,6 +28,12 @@ export function dampAxis(value, velocity, target, dt, frequency = 8) {
   };
 }
 
+// A roughly 125 ms tracking lag for a moving target, while retaining zero
+// initial velocity and the same response at different display refresh rates.
+export function dampLook(value, velocity, target, dt) {
+  return dampAxis(value, velocity, target, dt, 16);
+}
+
 export function roomLookAngles(x, y) {
   const horizontal = Math.max(-1, Math.min(1, x));
   const vertical = Math.max(-1, Math.min(1, y));
