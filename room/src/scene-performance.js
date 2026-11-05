@@ -20,14 +20,14 @@ function* prepareBatches(root, isExterior) {
       .map(([name, attr]) => `${name}:${attr.itemSize}:${attr.normalized}`)
       .sort().join('|');
     const exterior = isExterior(object);
-    // Keep far-apart buildings separate so the window frustum can discard
-    // invisible geometry instead of drawing one city-wide material batch.
-    let cell = '';
-    if (exterior) {
-      geometry.computeBoundingBox();
-      geometry.boundingBox.getCenter(center).applyMatrix4(object.matrixWorld);
-      cell = [center.x, center.y, center.z].map(v => Math.floor(v / 20)).join(',');
-    }
+    // Keep spatial clusters separate on BOTH sides of the window. A room-wide
+    // material batch otherwise keeps off-screen furniture and wall detail in
+    // every frame. All source triangles, normals and materials are retained.
+    geometry.computeBoundingBox();
+    geometry.boundingBox.getCenter(center).applyMatrix4(object.matrixWorld);
+    const cellSize = exterior ? 20 : 3;
+    const cell = [center.x, center.y, center.z]
+      .map(v => Math.floor(v / cellSize)).join(',');
     const key = [object.material.uuid, attributes, !!geometry.index,
       object.castShadow, object.receiveShadow, object.layers.mask, exterior, cell].join('/');
     if (!groups.has(key)) groups.set(key, []);

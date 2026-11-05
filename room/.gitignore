@@ -3,3 +3,4 @@ dist/
 public/models/room.glb
 .DS_Store
 *.bak
+src/assets/room.glb.gz

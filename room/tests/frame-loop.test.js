@@ -71,8 +71,15 @@ test('motion quality ignores short stalls, adapts to sustained slow frames and r
  const slow=createMotionQuality();
  let scale=1;
  for(let i=0;i<180;i++) scale=slow.sample(1/30,true);
- assert.equal(scale,.8);
+ assert.equal(scale,.65);
  assert.equal(slow.sample(1/60,false),1);
- assert.equal(slow.sample(1/60,true),.8);
+ assert.equal(slow.sample(1/60,true),.65);
  assert.equal(slow.sample(1/60,false),1);
 });
+
+ test('motion quality responds within a short gesture, not only after it ends', () => {
+   const quality = createMotionQuality(); let scale = 1;
+   for (let i = 0; i < 30; i++) scale = quality.sample(1/30, true);
+   assert.ok(scale < 1);
+   assert.equal(quality.sample(1/60, false), 1);
+ });

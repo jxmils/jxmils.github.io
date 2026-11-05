@@ -33,42 +33,23 @@
       <div class="navigation-wrap room-ui">
         <div id="navigation-help" class="navigation-help" hidden>
           <strong>Make yourself at home</strong>
-          <p>Drag the ball along the arc to look left or right. Release it to settle at that angle. Tap Desk in the center to return to your original view. Works with a mouse or touch.</p>
+          <p>Move the slider to look left or right. Choose Desk to return to your original view. Works with a mouse, touch, or keyboard.</p>
           <p>Scroll or use the − and + buttons to zoom.</p>
-          <p>Focus the arc and use <kbd>←</kbd> <kbd>→</kbd> to look · <kbd>Home</kbd> to center · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>R</kbd> reset</p>
+          <p>Focus the slider and use <kbd>←</kbd> <kbd>→</kbd> to look · <kbd>Home</kbd> / <kbd>End</kbd> for the edges · <kbd>+</kbd> <kbd>−</kbd> zoom · <kbd>R</kbd> reset</p>
           <p>Click the monitor to open the computer. <kbd>Esc</kbd> brings you back.</p>
         </div>
-        <div class="camera-dial">
-          <svg viewBox="0 0 240 80" aria-hidden="true">
-            <defs>
-              <linearGradient id="dial-charcoal" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#354348" />
-                <stop offset=".38" stop-color="#263438" />
-                <stop offset=".7" stop-color="#1c282d" />
-                <stop offset="1" stop-color="#10191f" />
-              </linearGradient>
-              <radialGradient id="dial-ball" cx=".32" cy=".25" r=".8">
-                <stop offset="0" stop-color="#fff3d8" />
-                <stop offset=".6" stop-color="#dfc396" />
-                <stop offset="1" stop-color="#aa8758" />
-              </radialGradient>
-            </defs>
-            <path class="dial-shadow" d="M22 54 Q120 -14 218 54" />
-            <path class="dial-rim" d="M22 52 Q120 -16 218 52" />
-            <path class="dial-band" d="M22 52 Q120 -16 218 52" />
-            <path class="dial-track" d="M22 52 Q120 -16 218 52" />
-            <path class="dial-center-tick" d="M120 5 V8" />
-            <circle id="camera-dial-ball" cx="120" cy="18" r="8" />
-          </svg>
-          <input id="camera-dial" type="range" min="-100" max="100" step="1" value="0" aria-label="Look around the room" aria-describedby="gesture-hint" disabled>
-          <button id="center-camera" type="button" aria-label="Return to desk" title="Return to desk" disabled><span aria-hidden="true">⌂</span><span>Desk</span></button>
-        </div>
         <nav class="room-controls" aria-label="Room navigation">
+          <div class="camera-dial">
+            <label for="camera-dial">Look</label>
+            <input id="camera-dial" type="range" min="-100" max="100" step="1" value="0" aria-label="Look around the room" aria-describedby="gesture-hint" disabled>
+          </div>
+          <button id="center-camera" type="button" aria-label="Return to desk" title="Return to desk (R)" disabled>Desk</button>
+          <span class="control-divider" aria-hidden="true"></span>
           <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out (−)" disabled>−</button>
           <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in (+)" disabled>+</button>
           <button id="show-help" type="button" aria-label="Navigation help" aria-expanded="false" aria-controls="navigation-help">?</button>
         </nav>
-        <p class="gesture-hint" id="gesture-hint">Drag to look · Desk to center</p>
+        <p class="gesture-hint" id="gesture-hint">Scroll to zoom · Desk to reset</p>
       </div>
       <div id="monitor-hint" class="monitor-hint" aria-hidden="true">Open computer <span>↗</span></div>
       <p id="room-status" class="sr-only" role="status" aria-live="polite"></p>

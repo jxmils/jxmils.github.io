@@ -1,6 +1,9 @@
 import { bindCameraDial } from './camera-dial.js';
 import './terminal.js';
 import roomUrl from './assets/room.glb?url';
+import compressedRoomUrl from './assets/room.glb.gz?url';
+import { readRoomAsset } from './room-asset.js';
+import { compileRoomLayers } from './room-shaders.js';
 import { MeshoptDecoder } from 'meshoptimizer/decoder';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -170,7 +173,7 @@ const status = document.querySelector('#room-status');
 const monitorHint = document.querySelector('#monitor-hint');
 const dialInput = document.querySelector('#camera-dial');
 const centerButton = document.querySelector('#center-camera');
-const cameraDial = bindCameraDial(dialInput, document.querySelector('#camera-dial-ball'), value => {
+const cameraDial = bindCameraDial(dialInput, value => {
   if (!roomReady || flight || desktop.classList.contains('visible')) { cameraDial.set(cursorGoal.x); return; }
   cursorGoal.set(value, 0);
   setMonitorHover(false);
@@ -765,8 +768,14 @@ function showRoomError(err) {
   document.querySelector('#retry-room').hidden = false;
 }
 
-new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
-  roomUrl,
+const roomLoader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+readRoomAsset(roomUrl, compressedRoomUrl, (event) => {
+  if (event.lengthComputable && event.total) {
+    const percent = Math.min(99, Math.round(event.loaded / event.total * 100));
+    progress.value = percent;
+    loadingMessage.textContent = percent === 99 ? 'Adding the finishing touches…' : `Preparing your view · ${percent}%`;
+  }
+}).then(bytes => roomLoader.parseAsync(bytes, '')).then(
   async (gltf) => {
     try {
       frameLoop?.pause();
@@ -881,13 +890,7 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
       roomModel.traverse(object => { object.matrixAutoUpdate = false; object.matrixWorldAutoUpdate = false; });
       progress.value = 99;
       loadingMessage.textContent = 'Preparing a smooth first look…';
-      const layers = camera.layers.mask;
-      try {
-        camera.layers.set(1);
-        await renderer.compileAsync(scene, camera);
-        camera.layers.set(0);
-        await renderer.compileAsync(scene, camera);
-      } finally { camera.layers.mask = layers; }
+      await compileRoomLayers(renderer, scene, camera);
       exteriorRendered = false;
       renderer.shadowMap.autoUpdate = true;
       renderer.shadowMap.needsUpdate = true;
@@ -905,15 +908,7 @@ new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
       invalidate();
     } catch (error) { showRoomError(error); }
   },
-  (event) => {
-    if (event.lengthComputable && event.total) {
-      const percent = Math.min(99, Math.round(event.loaded / event.total * 100));
-      progress.value = percent;
-      loadingMessage.textContent = percent === 99 ? 'Adding the finishing touches…' : `Preparing your view · ${percent}%`;
-    }
-  },
-  showRoomError,
-);
+).catch(showRoomError);
 
 function queueZoom(delta, deltaMode = 0) {
   if (!roomReady || !controls.enabled || flight) return;
