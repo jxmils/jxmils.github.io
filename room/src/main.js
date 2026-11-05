@@ -1,4 +1,3 @@
-import { bindCameraDial } from './camera-dial.js';
 import './terminal.js';
 import roomUrl from './assets/room.glb?url';
 import compressedRoomUrl from './assets/room.glb.gz?url';
@@ -10,7 +9,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { prepareStaticRoom } from './scene-performance.js';
-import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles } from './room-motion.js';
+import { zoomDistance, motionProgress, responseAt, dampAxis, roomLookAngles, pointerLook } from './room-motion.js';
 
 import { windowScissor, fitWindowCamera } from './window-render.js';
 import { createFrameLoop, roomPixelRatio, createMotionQuality } from './frame-loop.js';
@@ -158,7 +157,7 @@ let hoverDirty = false;
 let returnPose = null;
 let openingComputer = false;
 let returnFocus = null;
-let returnDial = null;
+let returnView = null;
 const cursorGoal = new THREE.Vector2();
 const cursorOffset = new THREE.Vector2();
 const cursorVelocity = new THREE.Vector2();
@@ -171,16 +170,6 @@ const loadingMessage = document.querySelector('#loading-message');
 const progress = document.querySelector('#loading-progress');
 const status = document.querySelector('#room-status');
 const monitorHint = document.querySelector('#monitor-hint');
-const dialInput = document.querySelector('#camera-dial');
-const centerButton = document.querySelector('#center-camera');
-const cameraDial = bindCameraDial(dialInput, value => {
-  if (!roomReady || flight || desktop.classList.contains('visible')) { cameraDial.set(cursorGoal.x); return; }
-  cursorGoal.set(value, 0);
-  setMonitorHover(false);
-  invalidate();
-});
-const help = document.querySelector('#navigation-help');
-const helpButton = document.querySelector('#show-help');
 const roomUI = [...document.querySelectorAll('.room-ui')];
 const coarsePointer = window.matchMedia('(pointer: coarse)');
 function invalidate() { needsRender = true; frameLoop?.wake(); }
@@ -258,15 +247,14 @@ function closeDesktop() {
   enterDesktopButton.disabled = false;
   const destination = returnPose ?? homePose;
   if (destination) flyTo(destination.position, destination.target, 1100, () => {
-    if (returnDial) {
-      camera.position.copy(returnDial.position);
-      controls.target.copy(returnDial.target);
-      panAnchor = returnDial.target.clone();
+    if (returnView) {
+      camera.position.copy(returnView.position);
+      controls.target.copy(returnView.target);
+      panAnchor = returnView.target.clone();
       setOrbitLimits();
       settleControls();
-      cursorGoal.set(returnDial.value, 0);
+      cursorGoal.copy(returnView.offset);
       cursorOffset.copy(cursorGoal);
-      cameraDial.set(returnDial.value);
     }
     (returnFocus?.isConnected ? returnFocus : enterDesktopButton).focus({ preventScroll: true });
     status.textContent = 'Back in the room.';
@@ -414,8 +402,6 @@ function updateMonitorHit(event) {
 // at the interpolated target avoids the old end-of-flight orientation snap.
 function flyTo(position, target, duration = 1100, onArrive) {
   if (!roomReady) return;
-  dialInput.disabled = true;
-  centerButton.disabled = true;
   settleCursorView();
   if (!flight) settleControls();
   controls.enabled = false;
@@ -444,8 +430,6 @@ function advanceFlight(now) {
     controls.enabled = !desktop.classList.contains('visible');
     enterDesktopButton.disabled = false;
     active.onArrive?.();
-    dialInput.disabled = desktop.classList.contains('visible');
-    centerButton.disabled = dialInput.disabled;
   }
 }
 
@@ -469,7 +453,6 @@ function rememberHome() {
 function goHome(duration = 1150) {
   if (!homePose || desktop.classList.contains('visible')) return;
   openingComputer = false;
-  cameraDial.set(0);
   enterDesktopButton.disabled = false;
   enterDesktopButton.textContent = 'Open computer ↗';
   flyTo(homePose.position, homePose.target, duration, () => {
@@ -480,7 +463,7 @@ function goHome(duration = 1150) {
 function focusMonitor() {
   if (!roomReady || flight || !monitorScreen || enterDesktopButton.disabled
     || desktop.classList.contains('visible')) return;
-  returnDial = { position: camera.position.clone(), target: controls.target.clone(), value: cursorOffset.x };
+  returnView = { position: camera.position.clone(), target: controls.target.clone(), offset: cursorOffset.clone() };
   settleCursorView();
   if (!flight) settleControls();
   returnPose = { position: camera.position.clone(), target: controls.target.clone() };
@@ -488,8 +471,6 @@ function focusMonitor() {
   enterDesktopButton.disabled = true;
   openingComputer = true;
   enterDesktopButton.textContent = 'Opening…';
-  help.hidden = true;
-  helpButton.setAttribute('aria-expanded', 'false');
   const bounds = new THREE.Box3().setFromObject(monitorScreen);
   const centre = bounds.getCenter(new THREE.Vector3());
   const size = bounds.getSize(new THREE.Vector3());
@@ -897,12 +878,10 @@ readRoomAsset(roomUrl, compressedRoomUrl, (event) => {
       roomReady = true;
       controls.enabled = true;
       canvas.setAttribute('aria-busy', 'false');
-      document.querySelectorAll('.room-controls button, #enter-desktop').forEach((button) => { button.disabled = false; });
+      enterDesktopButton.disabled = false;
       progress.value = 100;
       loading.classList.add('loaded');
       document.body.classList.add('room-ready');
-      dialInput.disabled = false;
-      centerButton.disabled = false;
       status.textContent = 'The room is ready. Explore the room, or open the computer.';
       if (!document.hidden) frameLoop?.resume();
       invalidate();
@@ -921,6 +900,9 @@ function queueZoom(delta, deltaMode = 0) {
 canvas.addEventListener('pointerdown', (event) => {
   if (!controls.enabled) return;
   canvas.focus({ preventScroll: true });
+  // Let the monitor stay put between pointerdown and click.
+  cursorGoal.copy(cursorOffset);
+  cursorVelocity.set(0, 0);
   if (!activePointers.size) {
     pointerTravel = 0;
     multiTouchGesture = false;
@@ -937,6 +919,17 @@ canvas.addEventListener('pointermove', (event) => {
   if (dragOrigin) pointerTravel = Math.max(pointerTravel,
     Math.hypot(event.clientX - dragOrigin.x, event.clientY - dragOrigin.y));
   if (activePointers.size) setMonitorHover(false);
+  // Mouse hover looks around without controls; a single-finger drag does the
+  // same on touchscreens. Keep buttons, camera flights and multi-touch separate.
+  const following = event.pointerType === 'touch'
+    ? activePointers.size === 1 && pointerTravel > 7
+    : activePointers.size === 0 && !reducedMotion.matches;
+  if (following && roomReady && controls.enabled && !flight
+    && !desktop.classList.contains('visible')) {
+    const look = pointerLook(event.clientX, event.clientY, canvas.getBoundingClientRect());
+    cursorGoal.set(look.x, look.y);
+    invalidate();
+  }
   frameLoop?.wake();
 });
 function releasePointer(event) {
@@ -945,7 +938,7 @@ function releasePointer(event) {
 }
 window.addEventListener('pointerup', releasePointer);
 window.addEventListener('pointercancel', (event) => { pointerDownHit = false; releasePointer(event); });
-// Keep the last view while the pointer visits navigation or leaves the room.
+// Keep the last view while the pointer visits the header or leaves the room.
 canvas.addEventListener('pointerleave', () => { lastHoverPointer = null; hoverDirty = false; setMonitorHover(false); });
 canvas.addEventListener('click', (event) => {
   if (!multiTouchGesture && pointerDownHit && pointerTravel <= 7 && updateMonitorHit(event)) focusMonitor();
@@ -960,20 +953,12 @@ canvas.addEventListener('wheel', (event) => {
 
 enterDesktopButton.addEventListener('click', focusMonitor);
 document.querySelector('#close-computer').addEventListener('click', closeDesktop);
-centerButton.addEventListener('click', () => goHome());
-document.querySelector('#zoom-in').addEventListener('click', () => queueZoom(-120));
-document.querySelector('#zoom-out').addEventListener('click', () => queueZoom(120));
 document.querySelector('#retry-room').addEventListener('click', () => location.reload());
-helpButton.addEventListener('click', () => {
-  help.hidden = !help.hidden;
-  helpButton.setAttribute('aria-expanded', String(!help.hidden));
-});
 
 
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     if (desktop.classList.contains('visible') || openingComputer) closeDesktop();
-    else if (!help.hidden) { help.hidden = true; helpButton.setAttribute('aria-expanded', 'false'); helpButton.focus(); }
     else goHome();
     event.preventDefault();
     return;
@@ -995,7 +980,7 @@ window.addEventListener('keydown', (event) => {
   if (key === '-') { queueZoom(100); event.preventDefault(); }
   if (event.target === canvas) {
     const turn = { ArrowLeft: -.05, ArrowRight: .05 }[event.key];
-    if (turn) { cursorGoal.x = THREE.MathUtils.clamp(cursorGoal.x + turn, -1, 1); cameraDial.set(cursorGoal.x); invalidate(); event.preventDefault(); }
+    if (turn) { cursorGoal.x = THREE.MathUtils.clamp(cursorGoal.x + turn, -1, 1); invalidate(); event.preventDefault(); }
     if (event.key === 'Enter') { focusMonitor(); event.preventDefault(); }
   }
 });

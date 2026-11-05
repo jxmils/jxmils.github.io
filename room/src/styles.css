@@ -525,49 +525,21 @@ body.monitor-hover #room-canvas { cursor: pointer; }
   .gesture-hint { max-width:90vw; text-align:center; }
 }
 
-/* Native range input and a compact, familiar toolbar over the study. */
-.navigation-wrap { gap: 8px; }
-.navigation-wrap .room-controls {
-  gap: 4px; padding: 5px 8px; border: 1px solid #ffffff26;
-  border-radius: 14px; background: #182126eb;
-  box-shadow: 0 4px 18px #0003; backdrop-filter: none;
-}
-.camera-dial { display: flex; align-items: center; gap: 12px; padding: 0 10px; }
-.camera-dial label { font-size: 12px; color: #ddd7cc; }
-#camera-dial {
-  appearance: auto; accent-color: #d4bf99; color-scheme: dark;
-  width: 144px; height: 44px; margin: 0; cursor: default;
-}
-#camera-dial:disabled { opacity: .45; }
-.navigation-wrap .room-controls button {
-  min-width: 44px; min-height: 44px; border-radius: 8px;
-  color: #eee7db; font-size: 13px; font-family: inherit;
-  touch-action: manipulation;
-}
-.navigation-wrap .room-controls #zoom-in,
-.navigation-wrap .room-controls #zoom-out { font-size: 22px; }
-#center-camera { padding: 0 12px; }
-.navigation-wrap .gesture-hint { color: #ded5c6; font-size: 11px; }
-.room-controls button, .hud button, .profile-shortcut, #close-computer {
+/* Quiet header controls; pointer movement controls the room itself. */
+.hud button, .profile-shortcut, #close-computer {
   transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 .hud button { box-shadow: 0 2px 10px #0002; border-radius: 10px; }
 .profile-shortcut { display: inline-flex; align-items: center; min-height: 44px; border-radius: 10px; }
 .hud button:hover:not(:disabled), .profile-shortcut:hover { background-color: #ffffff14; }
-.room-controls button:active:not(:disabled), .hud button:active:not(:disabled),
-.profile-shortcut:active, #close-computer:active { background-color: #ffffff22; transform: translateY(1px); }
-.room-controls button:disabled, .hud button:disabled { opacity: .45; cursor: default; }
-.room-controls :focus-visible, .hud :focus-visible, #close-computer:focus-visible {
+.hud button:active:not(:disabled), .profile-shortcut:active,
+#close-computer:active { background-color: #ffffff22; transform: translateY(1px); }
+.hud button:disabled { opacity: .45; cursor: default; }
+.hud :focus-visible, #close-computer:focus-visible {
   outline: 2px solid #e7c88e; outline-offset: 3px;
 }
 #room-canvas { cursor: default; }
-@media (max-width: 600px) {
-  .navigation-wrap .room-controls { flex-wrap: wrap; justify-content: center; max-width: 310px; }
-  .camera-dial { width: 100%; justify-content: center; }
-  #camera-dial { width: 210px; }
-  .navigation-wrap .control-divider { display: none; }
-}
 @media (prefers-reduced-motion: reduce) {
-  .room-controls button, .hud button, .profile-shortcut, #close-computer { transition: none; }
+  .hud button, .profile-shortcut, #close-computer { transition: none; }
 }

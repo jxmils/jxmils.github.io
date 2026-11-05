@@ -38,7 +38,10 @@ within a short gesture and can reduce pixel work further, restoring the original
 resolution as soon as motion settles. This can soften the image while moving on
 slower devices; it does not simplify the scene or alter its resting appearance.
 
-The bottom control is a visible native range input. Arrow keys adjust the view,
-Home/End reach its edges, and Desk returns to the original view. Toolbar buttons
-have 44 px targets and explicit focus/pressed states. The computer/profile
-content and camera travel are unchanged.
+The room follows the mouse pointer with a quiet center and gentle vertical
+movement. Touchscreens use a single-finger drag. There is no bottom toolbar.
+Scroll to zoom; keyboard arrows look around, R resets, and Enter opens the
+computer when the canvas has focus. Passive pointer-following is disabled for
+reduced-motion preferences, with keyboard and touch navigation still available.
+Header buttons retain clear focus/pressed states. The computer/profile content
+and camera framing are unchanged.

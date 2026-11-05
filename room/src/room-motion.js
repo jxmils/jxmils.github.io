@@ -46,3 +46,12 @@ export function followInput(value, deadZone = .025) {
   const t = (magnitude - deadZone) / (1 - deadZone);
   return Math.sign(value) * 1.04 * t * t / (t + .04);
 }
+
+// Normalize against the canvas, with a quiet center and restrained vertical
+// travel so following the pointer keeps the seated room composition intact.
+export function pointerLook(clientX, clientY, rect) {
+  return {
+    x: followInput((clientX - rect.left) / Math.max(1, rect.width) * 2 - 1),
+    y: followInput(1 - (clientY - rect.top) / Math.max(1, rect.height) * 2) * .25,
+  };
+}

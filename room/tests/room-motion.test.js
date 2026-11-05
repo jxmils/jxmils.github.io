@@ -68,3 +68,16 @@ test('room tracking reaches both side walls and stays bounded at pointer edges',
   assert.equal(roomLookAngles(0, 0).pitch, 0);
   assert.ok(Math.abs(roomLookAngles(.1, 0).yaw) < .09, 'precision near the monitor');
 });
+
+import { pointerLook } from '../src/room-motion.js';
+test('pointer look uses canvas coordinates, stays bounded and has a quiet center', () => {
+  const rect = { left: 100, top: 50, width: 800, height: 600 };
+  assert.deepEqual(pointerLook(500, 350, rect), { x: 0, y: 0 });
+  assert.deepEqual(pointerLook(508, 353, rect), { x: 0, y: 0 });
+  assert.deepEqual(pointerLook(100, 50, rect), { x: -1, y: .25 });
+  assert.deepEqual(pointerLook(900, 650, rect), { x: 1, y: -.25 });
+  assert.deepEqual(pointerLook(-1000, 2000, rect), { x: -1, y: -.25 });
+  const small = pointerLook(600, 300, rect), large = pointerLook(800, 200, rect);
+  assert.ok(small.x > 0 && small.x < large.x);
+  assert.ok(small.y > 0 && small.y < large.y);
+});
