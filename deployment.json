@@ -1,20 +1,21 @@
 {
-  "sourceCommit": "e31799581e5a116ab1e580e40e2359776a862d65",
-  "previousPagesCommit": "3c5253bcbfe1ae97dfae531c29017adbfce4002d",
+  "sourceCommit": "144a44addbe9e6d4494dd110cf5d3d9b56a4e604",
+  "previousPagesCommit": "4f21195d4862ab2ac8e8fe07938ebb5792471263",
   "sourceDirectory": "room",
-  "builtAt": "2026-09-22T12:54:53.848428+00:00",
+  "builtAt": "2026-11-05T02:44:16.230957+00:00",
   "files": {
-    "profile.html": "2ba7d7f68c8e939c9ccd763d6c9d802eaadea953f67add704866b1a958fb7886",
-    "index.html": "4efb959b1fc8f22f361916d0fd93da2e9c55d74eca0c1ca93b5be9dd4870f85b",
-    "assets/room-DZV0F-tT.glb": "67e9446159ef67434106b0a04845394c191416270edea99b36323c5c0acaad11",
+    "assets/favicon-FujqvBKN.svg": "a6e5f3a495f1ed8d88ae349f76ef18b4326b20c9159eae93b534d53641859002",
     "assets/jason-portrait-CEbsmSKs.jpg": "76c2d7ccd2d37e0aac39f95ea7e29e9f7bc11aa4c39db247f066509890167947",
-    "assets/terminal-BS0GtDVT.js": "99d9d7354602909726023fac1f03abbcdcd7b862afcd1a203525b64320b5489e",
-    "assets/room-Cav0Z-p7.js": "296069cd58050b9c10bd8a8c02868281a0ab2f43ca0004192cb789d56caced71",
-    "assets/main-DcbP3OlN.js": "dd8ad2ed20369e5c244a3362619f0dc4b55879b091cc7e95b6d9aa899cf8585c",
-    "assets/three-B_x1fXK-.js": "12235aea2d7d8b68a2ee069dce0aefaaa0a000a9d58978039af300babd4f78d8",
+    "assets/main-r0mPtqhl.js": "b1c72078bdc81aba1d9cc7b803217d229aa7379ddacf3e042e4086eb5c2c449a",
     "assets/portfolio-B-T98ZBR.css": "5615716a49cc028ed2007c3597a9bf5c76ee39b1b5909ebb789ff6a176e07b45",
-    "assets/room-BQL6D-BS.css": "39297b2b14397c77639378338f5879f6629f56a3c04bf8e151c4cfdd458aeefb",
     "assets/portfolio-BOVAOarG.js": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0",
-    "assets/favicon-FujqvBKN.svg": "a6e5f3a495f1ed8d88ae349f76ef18b4326b20c9159eae93b534d53641859002"
+    "assets/room-BpC_sEaJ.js": "83ca85a7ffec8197f0df620f96a5e5a038bd9c9823132ae84bae1f97fb704071",
+    "assets/room-DZV0F-tT.glb": "67e9446159ef67434106b0a04845394c191416270edea99b36323c5c0acaad11",
+    "assets/room-Dq5nBc8V.css": "b795f6080f3cd6023faab637cf9a48a1c068c835d6bc0db999eb365e55f03f1d",
+    "assets/room.glb-DkDG5amL.gz": "eb27029e0d4f4b4705fce959acc833b1649c0507605b933be06d042aeb7e2c0d",
+    "assets/terminal-BS0GtDVT.js": "99d9d7354602909726023fac1f03abbcdcd7b862afcd1a203525b64320b5489e",
+    "assets/three-VIZQ3Jrw.js": "7da4722e008ae8dd82168272bc318837f259b29cb72f50280e31319efdcdc345",
+    "index.html": "40ee0822fb7a1ecb4e5c34e1993d83c4fd71f80acff978d58d8d276998630154",
+    "profile.html": "2ba7d7f68c8e939c9ccd763d6c9d802eaadea953f67add704866b1a958fb7886"
   }
 }
